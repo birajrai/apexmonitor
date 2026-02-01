@@ -6,10 +6,36 @@ import Category from '../models/Category.js';
 const r = Router();
 r.use(auth);
 
-r.get('/monitors', async (_, res) => res.json(await Monitor.find()));
-r.post('/monitors', async (req, res) => res.json(await Monitor.create(req.body)));
+r.get('/monitors', async (_, res, next) => {
+    try {
+        res.json(await Monitor.find());
+    } catch (error) {
+        next(error);
+    }
+});
 
-r.get('/categories', async (_, res) => res.json(await Category.find()));
-r.post('/categories', async (req, res) => res.json(await Category.create(req.body)));
+r.post('/monitors', async (req, res, next) => {
+    try {
+        res.json(await Monitor.create(req.body));
+    } catch (error) {
+        next(error);
+    }
+});
+
+r.get('/categories', async (_, res, next) => {
+    try {
+        res.json(await Category.find());
+    } catch (error) {
+        next(error);
+    }
+});
+
+r.post('/categories', async (req, res, next) => {
+    try {
+        res.json(await Category.create(req.body));
+    } catch (error) {
+        next(error);
+    }
+});
 
 export default r;
