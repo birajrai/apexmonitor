@@ -4,10 +4,10 @@
     <div v-if="!monitors.length" class="muted">No monitors available.</div>
     <div v-for="m in monitors" :key="m._id" class="monitor-card">
       <div class="title">{{ m.name }}</div>
-      <div class="row">Type: {{ m.type || 'http' }}</div>
-      <div class="row">URL: {{ m.url || 'https://www.google.com' }}</div>
-      <div class="row">Interval: {{ m.interval || 30 }}s</div>
-      <div class="row">Status: <span :class="statusClass(m)">{{ m.lastStatus || 'up' }}</span></div>
+      <div class="row">Type: {{ m.type }}</div>
+      <div class="row">Target: {{ getTarget(m) }}</div>
+      <div class="row">Interval: {{ m.interval }}s</div>
+      <div class="row">Status: <span :class="statusClass(m)">{{ m.lastStatus }}</span></div>
     </div>
   </div>
 </template>
@@ -17,17 +17,10 @@ import { ref, onMounted } from "vue"
 
 const monitors = ref([])
 
-function fallbackMonitors() {
-  return [
-    {
-      _id: "hardcoded-google",
-      name: "Google",
-      type: "http",
-      url: "https://www.google.com",
-      interval: 30,
-      lastStatus: "up",
-    },
-  ]
+function getTarget(m) {
+  if (m.type === 'http' && m.target?.url) return m.target.url
+  if (m.type === 'tcp' && m.target?.host) return `${m.target.host}:${m.target.port}`
+  return JSON.stringify(m.target)
 }
 
 function statusClass(m) {
@@ -42,9 +35,13 @@ onMounted(async () => {
     const res = await fetch("/api/public/status")
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-    monitors.value = data?.monitors?.length ? data.monitors : fallbackMonitors()
-  } catch {
-    monitors.value = fallbackMonitors()
+    if (!data?.monitors?.length) {
+      throw new Error("No monitors found")
+    }
+    monitors.value = data.monitors
+  } catch (error) {
+    console.error("Failed to fetch monitors:", error)
+    monitors.value = []
   }
 })
 </script>
