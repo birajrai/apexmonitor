@@ -31,7 +31,7 @@ router.get('/', async (req: Request, res: Response) => {
         const activeIncident = await Incident.findOne({
           where: {
             serviceId: service.id,
-            resolvedAt: { [Op.eq]: null as any },
+            resolvedAt: { [Op.eq]: null as unknown as Date },
           },
         });
 
@@ -156,7 +156,7 @@ router.get('/api/status', async (req: Request, res: Response) => {
         const activeIncident = await Incident.findOne({
           where: {
             serviceId: service.id,
-            resolvedAt: { [Op.eq]: null as any },
+            resolvedAt: { [Op.eq]: null as unknown as Date },
           },
         });
 
