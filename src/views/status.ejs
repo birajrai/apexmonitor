@@ -1,50 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="60">
   <title><%= title %></title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://unpkg.com/light-icons/dist/light-icon.css">
   <link rel="stylesheet" href="/style.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <style>
+    /* Status page specific live update styles */
+    .status-updating {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    .status-updated {
+      animation: statusFlash 0.5s ease;
+    }
+    @keyframes statusFlash {
+      0% { background-color: rgba(99, 102, 241, 0.1); }
+      100% { background-color: transparent; }
+    }
+  </style>
 </head>
 <body class="status-page">
   <div class="status-container">
     <header class="status-header">
+      <div class="status-header-top">
+        <div></div>
+        <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+          <i class="light-icon-moon"></i>
+          <i class="light-icon-sun"></i>
+        </button>
+      </div>
       <div class="status-logo">
-        <i class="fas fa-chart-line"></i>
+        <i class="light-icon-activity"></i>
       </div>
       <h1>System Status</h1>
-      <div class="overall-status <%= overallStatus %>">
+      <div class="overall-status <%= overallStatus %>" id="overallStatus">
         <% if (overallStatus === 'operational') { %>
-          <i class="fas fa-check-circle"></i>
+          <i class="light-icon-check-circle"></i>
           <span>All Systems Operational</span>
         <% } else if (overallStatus === 'degraded') { %>
-          <i class="fas fa-exclamation-triangle"></i>
+          <i class="light-icon-alert-triangle"></i>
           <span>Partial System Outage</span>
         <% } else { %>
-          <i class="fas fa-times-circle"></i>
+          <i class="light-icon-x-circle"></i>
           <span>Major System Outage</span>
         <% } %>
       </div>
       <div class="last-updated">
-        <i class="far fa-clock"></i>
-        Last updated: <%= lastUpdated.toLocaleString() %>
+        <i class="light-icon-clock"></i>
+        <span>Last Updated: <span id="lastUpdated"><%= lastUpdated.toISOString().replace('T', ' ').substring(0, 19) %></span></span>
+        <span class="refresh-timer">
+          <i class="light-icon-refresh-cw"></i>
+          <span>Refresh in: <span id="refreshTimer">00:60</span></span>
+        </span>
+        <span class="live-indicator" id="liveIndicator">
+          <span class="dot"></span>
+          <span>Live</span>
+        </span>
       </div>
     </header>
 
-    <main>
+    <main id="servicesContainer">
       <% Object.entries(groupedServices).forEach(([group, services]) => { %>
-        <section class="service-group">
+        <section class="service-group" data-group="<%= group %>">
           <div class="group-header">
-            <i class="fas fa-folder"></i>
+            <i class="light-icon-folder"></i>
             <%= group %>
           </div>
           <% services.forEach(service => { %>
-            <div class="service-item">
+            <div class="service-item" data-service-id="<%= service.id %>">
               <div class="service-info">
                 <span class="status-dot <%= service.status %>">
-                  <i class="fas <%= service.status === 'operational' ? 'fa-check' : (service.status === 'degraded' ? 'fa-minus' : 'fa-times') %>"></i>
+                  <% if (service.status === 'operational') { %>
+                    <i class="light-icon-check"></i>
+                  <% } else if (service.status === 'degraded') { %>
+                    <i class="light-icon-minus"></i>
+                  <% } else { %>
+                    <i class="light-icon-x"></i>
+                  <% } %>
                 </span>
                 <span class="service-name"><%= service.name %></span>
               </div>
@@ -55,16 +90,16 @@
                     <div class="bar <%= check ? (check.status === 'UP' ? 'up' : 'down') : 'empty' %>"></div>
                   <% } %>
                 </div>
-                <span class="response-time">
+                <span class="response-time <%= service.responseTime !== null ? (service.responseTime < 200 ? 'fast' : (service.responseTime < 500 ? 'medium' : 'slow')) : '' %>">
                   <% if (service.responseTime !== null) { %>
-                    <i class="fas fa-bolt"></i>
-                    <%= service.responseTime %>ms
+                    <i class="light-icon-zap"></i>
+                    <span class="response-value"><%= service.responseTime %>ms</span>
                   <% } else { %>
-                    <i class="fas fa-minus"></i>
+                    <i class="light-icon-minus"></i>
                   <% } %>
                 </span>
                 <span class="uptime-percent <%= parseFloat(service.uptimePercent) >= 99 ? 'good' : (parseFloat(service.uptimePercent) >= 95 ? 'warning' : 'bad') %>">
-                  <%= service.uptimePercent %>%
+                  <span class="uptime-value"><%= service.uptimePercent %></span>%
                 </span>
               </div>
             </div>
@@ -75,7 +110,7 @@
       <% if (Object.keys(groupedServices).length === 0) { %>
         <section class="service-group">
           <div class="no-services">
-            <i class="fas fa-server"></i>
+            <i class="light-icon-server"></i>
             <p>No services configured for status page</p>
           </div>
         </section>
@@ -83,33 +118,37 @@
 
       <section class="incidents-section">
         <h2>
-          <i class="fas fa-exclamation-triangle"></i>
+          <i class="light-icon-alert-triangle"></i>
           Recent Incidents
         </h2>
-        <div class="incident-list">
+        <div class="incident-list" id="incidentList">
           <% if (recentIncidents.length > 0) { %>
             <% recentIncidents.forEach(incident => { %>
-              <div class="incident-item">
+              <div class="incident-item" data-incident-id="<%= incident.id %>">
                 <div class="incident-info">
                   <span class="incident-status <%= incident.isActive ? 'active' : 'resolved' %>">
-                    <i class="fas <%= incident.isActive ? 'fa-exclamation-circle' : 'fa-check-circle' %>"></i>
+                    <% if (incident.isActive) { %>
+                      <i class="light-icon-alert-circle"></i>
+                    <% } else { %>
+                      <i class="light-icon-check-circle"></i>
+                    <% } %>
                     <%= incident.isActive ? 'Active' : 'Resolved' %>
                   </span>
                   <span class="incident-service"><%= incident.serviceName %></span>
                 </div>
                 <span class="incident-time">
-                  <i class="far fa-clock"></i>
-                  <%= incident.startedAt.toLocaleString() %>
+                  <i class="light-icon-clock"></i>
+                  <%= incident.startedAt.toISOString().replace('T', ' ').substring(0, 19) %>
                   <% if (incident.resolvedAt) { %>
-                    <i class="fas fa-arrow-right"></i>
-                    <%= incident.resolvedAt.toLocaleString() %>
+                    <i class="light-icon-arrow-right"></i>
+                    <%= incident.resolvedAt.toISOString().replace('T', ' ').substring(0, 19) %>
                   <% } %>
                 </span>
               </div>
             <% }); %>
           <% } else { %>
             <div class="no-incidents">
-              <i class="fas fa-check-circle"></i>
+              <i class="light-icon-check-circle"></i>
               <p>No recent incidents</p>
             </div>
           <% } %>
@@ -122,11 +161,186 @@
         <span>Powered by <a href="https://github.com/apexmonitor/apexmonitor" target="_blank">ApexMonitor</a></span>
         <span class="footer-divider">|</span>
         <a href="/auth/login">
-          <i class="fas fa-lock"></i>
+          <i class="light-icon-lock"></i>
           Admin
         </a>
       </div>
     </footer>
   </div>
+
+  <script>
+    // Status page configuration
+    const STATUS_CONFIG = {
+      refreshInterval: 60000, // 60 seconds
+      apiEndpoint: '/api/status'
+    };
+
+    // Initialize on DOM ready
+    $(document).ready(function() {
+      initThemeToggle();
+      initRefreshTimer();
+      initLiveUpdates();
+    });
+
+    /**
+     * Theme Toggle Functionality
+     */
+    function initThemeToggle() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      $('html').attr('data-theme', savedTheme);
+
+      $('#themeToggle').on('click', function() {
+        const currentTheme = $('html').attr('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        $('html').attr('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+      });
+    }
+
+    /**
+     * Refresh Timer Countdown
+     */
+    let refreshCountdown = 60;
+    let countdownInterval;
+
+    function initRefreshTimer() {
+      updateTimerDisplay();
+      countdownInterval = setInterval(function() {
+        refreshCountdown--;
+        updateTimerDisplay();
+        
+        if (refreshCountdown <= 0) {
+          refreshCountdown = 60;
+          fetchStatusUpdate();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(refreshCountdown / 60);
+      const seconds = refreshCountdown % 60;
+      $('#refreshTimer').text(
+        String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0')
+      );
+    }
+
+    /**
+     * Live Status Updates via AJAX
+     */
+    function initLiveUpdates() {
+      // Initial fetch to ensure sync
+      setTimeout(fetchStatusUpdate, 5000);
+    }
+
+    function fetchStatusUpdate() {
+      const $indicator = $('#liveIndicator');
+      
+      $.ajax({
+        url: STATUS_CONFIG.apiEndpoint,
+        method: 'GET',
+        dataType: 'json',
+        timeout: 10000,
+        beforeSend: function() {
+          $indicator.removeClass('disconnected');
+        },
+        success: function(data) {
+          updateStatusUI(data);
+          updateLastUpdated(data.lastUpdated);
+          $indicator.removeClass('disconnected');
+        },
+        error: function(xhr, status, error) {
+          console.error('Failed to fetch status:', error);
+          $indicator.addClass('disconnected');
+          $indicator.find('span:last').text('Reconnecting...');
+        }
+      });
+    }
+
+    /**
+     * Update UI with new status data
+     */
+    function updateStatusUI(data) {
+      // Update overall status
+      const $overallStatus = $('#overallStatus');
+      $overallStatus.removeClass('operational degraded outage');
+      $overallStatus.addClass(data.status);
+      
+      let statusIcon, statusText;
+      switch(data.status) {
+        case 'operational':
+          statusIcon = 'light-icon-check-circle';
+          statusText = 'All Systems Operational';
+          break;
+        case 'degraded':
+          statusIcon = 'light-icon-alert-triangle';
+          statusText = 'Partial System Outage';
+          break;
+        default:
+          statusIcon = 'light-icon-x-circle';
+          statusText = 'Major System Outage';
+      }
+      $overallStatus.html('<i class="' + statusIcon + '"></i><span>' + statusText + '</span>');
+
+      // Update individual services
+      data.services.forEach(function(service) {
+        const $serviceItem = $('[data-service-id="' + service.id + '"]');
+        if ($serviceItem.length) {
+          // Update status dot
+          const $statusDot = $serviceItem.find('.status-dot');
+          $statusDot.removeClass('operational degraded down unknown');
+          $statusDot.addClass(service.status);
+          
+          let dotIcon;
+          switch(service.status) {
+            case 'operational':
+              dotIcon = 'light-icon-check';
+              break;
+            case 'degraded':
+              dotIcon = 'light-icon-minus';
+              break;
+            default:
+              dotIcon = 'light-icon-x';
+          }
+          $statusDot.find('i').attr('class', dotIcon);
+
+          // Update response time
+          const $responseTime = $serviceItem.find('.response-time');
+          if (service.responseTime !== null) {
+            $responseTime.removeClass('fast medium slow');
+            if (service.responseTime < 200) {
+              $responseTime.addClass('fast');
+            } else if (service.responseTime < 500) {
+              $responseTime.addClass('medium');
+            } else {
+              $responseTime.addClass('slow');
+            }
+            $responseTime.find('.response-value').text(service.responseTime + 'ms');
+          }
+
+          // Add update animation
+          $serviceItem.addClass('status-updated');
+          setTimeout(function() {
+            $serviceItem.removeClass('status-updated');
+          }, 500);
+        }
+      });
+    }
+
+    /**
+     * Update last updated timestamp
+     */
+    function updateLastUpdated(timestamp) {
+      const date = new Date(timestamp);
+      const formatted = date.toISOString().replace('T', ' ').substring(0, 19);
+      $('#lastUpdated').text(formatted);
+    }
+
+    // Cleanup on page unload
+    $(window).on('beforeunload', function() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+    });
+  </script>
 </body>
 </html>

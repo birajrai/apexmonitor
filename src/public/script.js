@@ -1,11 +1,13 @@
 /* ============================================
    ApexMonitor - Modern UI JavaScript
+   Using Light Icons
    ============================================ */
 
 /**
  * Initialize all interactive components when DOM is ready
  */
 document.addEventListener('DOMContentLoaded', function() {
+  initThemeToggle();
   initNavbarToggle();
   initUserDropdown();
   initSettingsTabs();
@@ -16,21 +18,54 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+ * Theme Toggle (Dark Mode)
+ */
+function initThemeToggle() {
+  const themeToggle = document.getElementById('themeToggle');
+  if (!themeToggle) return;
+
+  // Load saved theme or default to light
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+
+  themeToggle.addEventListener('click', function() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  });
+}
+
+/**
  * Mobile Navbar Toggle
  */
 function initNavbarToggle() {
   const toggle = document.getElementById('navbarToggle');
-  const nav = document.querySelector('.navbar-nav');
+  const nav = document.getElementById('navbarNav') || document.querySelector('.navbar-nav');
   
   if (toggle && nav) {
     toggle.addEventListener('click', function() {
       nav.classList.toggle('open');
+      // Update icon
+      const icon = toggle.querySelector('i');
+      if (icon) {
+        if (nav.classList.contains('open')) {
+          icon.className = 'light-icon-x';
+        } else {
+          icon.className = 'light-icon-menu';
+        }
+      }
     });
     
     // Close navbar when clicking outside
     document.addEventListener('click', function(e) {
       if (!toggle.contains(e.target) && !nav.contains(e.target)) {
         nav.classList.remove('open');
+        const icon = toggle.querySelector('i');
+        if (icon) {
+          icon.className = 'light-icon-menu';
+        }
       }
     });
   }
@@ -40,7 +75,7 @@ function initNavbarToggle() {
  * User Dropdown Toggle
  */
 function initUserDropdown() {
-  const dropdown = document.querySelector('.user-dropdown');
+  const dropdown = document.getElementById('userDropdown');
   const toggle = document.getElementById('userDropdownToggle');
   
   if (dropdown && toggle) {
@@ -184,7 +219,7 @@ function initDiscordTest() {
       
       // Disable button and show loading state
       const originalHtml = this.innerHTML;
-      this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Sending...</span>';
+      this.innerHTML = '<i class="light-icon-refresh-cw animate-spin"></i> <span>Sending...</span>';
       this.disabled = true;
       
       try {
@@ -234,7 +269,7 @@ function initDeleteConfirmations() {
 /**
  * Show a temporary notification message
  * @param {string} message - The message to display
- * @param {string} type - The type of notification: 'success', 'error', 'warning'
+ * @param {string} type - The type of notification: 'success', 'error', 'warning', 'info'
  */
 function showNotification(message, type = 'info') {
   // Remove any existing notifications
@@ -245,108 +280,22 @@ function showNotification(message, type = 'info') {
   
   // Get icon based on type
   const icons = {
-    success: 'fa-check-circle',
-    error: 'fa-exclamation-circle',
-    warning: 'fa-exclamation-triangle',
-    info: 'fa-info-circle'
+    success: 'light-icon-check-circle',
+    error: 'light-icon-alert-circle',
+    warning: 'light-icon-alert-triangle',
+    info: 'light-icon-info'
   };
   
   // Create notification element
   const notification = document.createElement('div');
   notification.className = 'notification-toast notification-' + type;
   notification.innerHTML = `
-    <i class="fas ${icons[type] || icons.info}"></i>
+    <i class="${icons[type] || icons.info}"></i>
     <span class="notification-message">${escapeHtml(message)}</span>
     <button class="notification-close" onclick="this.parentElement.remove()">
-      <i class="fas fa-times"></i>
+      <i class="light-icon-x"></i>
     </button>
   `;
-  
-  // Add styles if not already present
-  if (!document.querySelector('#notification-styles')) {
-    const style = document.createElement('style');
-    style.id = 'notification-styles';
-    style.textContent = `
-      .notification-toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 16px 20px;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        max-width: 400px;
-        font-size: 14px;
-        font-weight: 500;
-      }
-      .notification-success {
-        background-color: #dcfce7;
-        border: 1px solid #22c55e;
-        color: #16a34a;
-      }
-      .notification-error {
-        background-color: #fee2e2;
-        border: 1px solid #ef4444;
-        color: #dc2626;
-      }
-      .notification-warning {
-        background-color: #fef3c7;
-        border: 1px solid #f59e0b;
-        color: #d97706;
-      }
-      .notification-info {
-        background-color: #dbeafe;
-        border: 1px solid #3b82f6;
-        color: #2563eb;
-      }
-      .notification-toast i:first-child {
-        font-size: 18px;
-      }
-      .notification-message {
-        flex: 1;
-      }
-      .notification-close {
-        background: none;
-        border: none;
-        font-size: 14px;
-        cursor: pointer;
-        opacity: 0.6;
-        color: inherit;
-        padding: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .notification-close:hover {
-        opacity: 1;
-      }
-      @keyframes slideIn {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-      @keyframes slideOut {
-        from {
-          transform: translateX(0);
-          opacity: 1;
-        }
-        to {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
   
   // Add to DOM
   document.body.appendChild(notification);
@@ -405,8 +354,21 @@ function formatDate(date) {
   return date.toLocaleString();
 }
 
+/**
+ * Format date to ISO-like string (YYYY-MM-DD HH:MM:SS)
+ * @param {Date|string} date - Date to format
+ * @returns {string} Formatted date string
+ */
+function formatDateISO(date) {
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
+  return date.toISOString().replace('T', ' ').substring(0, 19);
+}
+
 // Export functions for global use
 window.showMonitorConfig = showMonitorConfig;
 window.showNotification = showNotification;
 window.formatDuration = formatDuration;
 window.formatDate = formatDate;
+window.formatDateISO = formatDateISO;

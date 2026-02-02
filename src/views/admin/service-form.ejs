@@ -1,44 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> - ApexMonitor Admin</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://unpkg.com/light-icons/dist/light-icon.css">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <nav class="navbar">
     <div class="navbar-inner">
       <a href="/admin" class="navbar-brand">
-        <i class="fas fa-chart-line"></i>
+        <i class="light-icon-activity"></i>
         <span>Apex</span>Monitor
       </a>
-      <div class="navbar-nav">
+      <div class="navbar-nav" id="navbarNav">
         <a href="/admin" class="nav-link">
-          <i class="fas fa-th-large"></i>
+          <i class="light-icon-grid"></i>
           <span>Dashboard</span>
         </a>
         <a href="/admin/incidents" class="nav-link">
-          <i class="fas fa-exclamation-triangle"></i>
+          <i class="light-icon-alert-triangle"></i>
           <span>Incidents</span>
         </a>
         <a href="/admin/settings" class="nav-link">
-          <i class="fas fa-cog"></i>
+          <i class="light-icon-settings"></i>
           <span>Settings</span>
         </a>
         <a href="/" target="_blank" class="nav-link">
-          <i class="fas fa-external-link-alt"></i>
+          <i class="light-icon-external-link"></i>
           <span>Status Page</span>
         </a>
         <div class="nav-divider"></div>
+        <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+          <i class="light-icon-moon"></i>
+          <i class="light-icon-sun"></i>
+        </button>
         <a href="/auth/logout" class="nav-link nav-link-danger">
-          <i class="fas fa-sign-out-alt"></i>
+          <i class="light-icon-log-out"></i>
           <span>Logout</span>
         </a>
       </div>
       <button class="navbar-toggle" id="navbarToggle">
-        <i class="fas fa-bars"></i>
+        <i class="light-icon-menu"></i>
       </button>
     </div>
   </nav>
@@ -47,7 +51,7 @@
     <div class="page-header">
       <div class="page-header-left">
         <h1>
-          <i class="fas <%= service && service._id ? 'fa-edit' : 'fa-plus-circle' %>"></i>
+          <i class="light-icon-<%= service && service._id ? 'edit' : 'plus-circle' %>"></i>
           <%= title %>
         </h1>
         <p class="page-subtitle"><%= service && service._id ? 'Modify service configuration' : 'Configure a new service to monitor' %></p>
@@ -56,7 +60,7 @@
 
     <% if (error) { %>
       <div class="alert alert-error">
-        <i class="fas fa-exclamation-circle"></i>
+        <i class="light-icon-alert-circle"></i>
         <%= error %>
       </div>
     <% } %>
@@ -68,12 +72,12 @@
           <!-- Basic Information -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fas fa-info-circle"></i> Basic Information
+              <i class="light-icon-info"></i> Basic Information
             </div>
             
             <div class="form-group">
               <label for="name">
-                <i class="fas fa-tag"></i> Service Name <span class="required">*</span>
+                <i class="light-icon-tag"></i> Service Name <span class="required">*</span>
               </label>
               <input type="text" id="name" name="name" required maxlength="100" 
                 value="<%= service ? service.name : '' %>" 
@@ -83,7 +87,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="group">
-                  <i class="fas fa-folder"></i> Group
+                  <i class="light-icon-folder"></i> Group
                 </label>
                 <input type="text" id="group" name="group" maxlength="50" 
                   value="<%= service ? service.group : 'Default' %>" 
@@ -93,7 +97,7 @@
 
               <div class="form-group">
                 <label for="monitorType">
-                  <i class="fas fa-plug"></i> Monitor Type <span class="required">*</span>
+                  <i class="light-icon-link"></i> Monitor Type <span class="required">*</span>
                 </label>
                 <div class="select-wrapper">
                   <select id="monitorType" name="monitorType" required>
@@ -104,7 +108,7 @@
                       </option>
                     <% }) %>
                   </select>
-                  <i class="fas fa-chevron-down select-icon"></i>
+                  <i class="light-icon-chevron-down select-icon"></i>
                 </div>
               </div>
             </div>
@@ -113,14 +117,14 @@
           <!-- HTTP Configuration -->
           <div id="http-config" class="monitor-config">
             <div class="form-section-title">
-              <i class="fas fa-globe"></i> HTTP Monitor Configuration
+              <i class="light-icon-globe"></i> HTTP Monitor Configuration
             </div>
             <div class="form-group">
               <label for="httpUrl">
-                <i class="fas fa-link"></i> URL <span class="required">*</span>
+                <i class="light-icon-link"></i> URL <span class="required">*</span>
               </label>
               <div class="input-with-icon">
-                <i class="fas fa-globe input-icon"></i>
+                <i class="light-icon-globe input-icon"></i>
                 <input type="url" id="httpUrl" name="httpUrl" 
                   value="<%= service && service.monitorType === 'http' ? service.monitorConfig.url : '' %>" 
                   placeholder="https://example.com/health">
@@ -129,7 +133,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="httpMethod">
-                  <i class="fas fa-exchange-alt"></i> Method
+                  <i class="light-icon-repeat"></i> Method
                 </label>
                 <div class="select-wrapper">
                   <select id="httpMethod" name="httpMethod">
@@ -137,12 +141,12 @@
                     <option value="POST" <%= service && service.monitorConfig?.method === 'POST' ? 'selected' : '' %>>POST</option>
                     <option value="HEAD" <%= service && service.monitorConfig?.method === 'HEAD' ? 'selected' : '' %>>HEAD</option>
                   </select>
-                  <i class="fas fa-chevron-down select-icon"></i>
+                  <i class="light-icon-chevron-down select-icon"></i>
                 </div>
               </div>
               <div class="form-group">
                 <label for="httpExpectedStatus">
-                  <i class="fas fa-check-double"></i> Expected Status Code
+                  <i class="light-icon-check-square"></i> Expected Status Code
                 </label>
                 <input type="number" id="httpExpectedStatus" name="httpExpectedStatus" 
                   value="<%= service && service.monitorConfig?.expectedStatusCode ? service.monitorConfig.expectedStatusCode : 200 %>" 
@@ -151,7 +155,7 @@
             </div>
             <div class="form-group">
               <label for="httpTimeout">
-                <i class="fas fa-stopwatch"></i> Timeout (ms)
+                <i class="light-icon-watch"></i> Timeout (ms)
               </label>
               <input type="number" id="httpTimeout" name="httpTimeout" 
                 value="<%= service && service.monitorConfig?.timeoutMs ? service.monitorConfig.timeoutMs : 30000 %>" 
@@ -163,14 +167,14 @@
           <!-- Ping Configuration -->
           <div id="ping-config" class="monitor-config">
             <div class="form-section-title">
-              <i class="fas fa-network-wired"></i> Ping Monitor Configuration
+              <i class="light-icon-wifi"></i> Ping Monitor Configuration
             </div>
             <div class="form-group">
               <label for="pingHost">
-                <i class="fas fa-server"></i> Host <span class="required">*</span>
+                <i class="light-icon-server"></i> Host <span class="required">*</span>
               </label>
               <div class="input-with-icon">
-                <i class="fas fa-network-wired input-icon"></i>
+                <i class="light-icon-wifi input-icon"></i>
                 <input type="text" id="pingHost" name="pingHost" 
                   value="<%= service && service.monitorType === 'ping' ? service.monitorConfig.host : '' %>" 
                   placeholder="example.com or 192.168.1.1">
@@ -178,7 +182,7 @@
             </div>
             <div class="form-group">
               <label for="pingTimeout">
-                <i class="fas fa-stopwatch"></i> Timeout (ms)
+                <i class="light-icon-watch"></i> Timeout (ms)
               </label>
               <input type="number" id="pingTimeout" name="pingTimeout" 
                 value="<%= service && service.monitorConfig?.timeoutMs ? service.monitorConfig.timeoutMs : 5000 %>" 
@@ -190,14 +194,14 @@
           <!-- DNS Configuration -->
           <div id="dns-config" class="monitor-config">
             <div class="form-section-title">
-              <i class="fas fa-sitemap"></i> DNS Monitor Configuration
+              <i class="light-icon-share-2"></i> DNS Monitor Configuration
             </div>
             <div class="form-group">
               <label for="dnsHostname">
-                <i class="fas fa-at"></i> Hostname <span class="required">*</span>
+                <i class="light-icon-at-sign"></i> Hostname <span class="required">*</span>
               </label>
               <div class="input-with-icon">
-                <i class="fas fa-sitemap input-icon"></i>
+                <i class="light-icon-share-2 input-icon"></i>
                 <input type="text" id="dnsHostname" name="dnsHostname" 
                   value="<%= service && service.monitorType === 'dns' ? service.monitorConfig.hostname : '' %>" 
                   placeholder="example.com">
@@ -206,7 +210,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="dnsRecordType">
-                  <i class="fas fa-list"></i> Record Type
+                  <i class="light-icon-list"></i> Record Type
                 </label>
                 <div class="select-wrapper">
                   <select id="dnsRecordType" name="dnsRecordType">
@@ -216,12 +220,12 @@
                     <option value="MX" <%= service && service.monitorConfig?.recordType === 'MX' ? 'selected' : '' %>>MX (Mail)</option>
                     <option value="TXT" <%= service && service.monitorConfig?.recordType === 'TXT' ? 'selected' : '' %>>TXT</option>
                   </select>
-                  <i class="fas fa-chevron-down select-icon"></i>
+                  <i class="light-icon-chevron-down select-icon"></i>
                 </div>
               </div>
               <div class="form-group">
                 <label for="dnsExpectedValue">
-                  <i class="fas fa-check"></i> Expected Value (optional)
+                  <i class="light-icon-check"></i> Expected Value (optional)
                 </label>
                 <input type="text" id="dnsExpectedValue" name="dnsExpectedValue" 
                   value="<%= service && service.monitorConfig?.expectedValue ? service.monitorConfig.expectedValue : '' %>" 
@@ -233,7 +237,7 @@
           <!-- Monitoring Settings -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fas fa-play-circle"></i> Monitoring Settings
+              <i class="light-icon-play-circle"></i> Monitoring Settings
             </div>
 
             <div class="form-group">
@@ -254,7 +258,7 @@
           <!-- Status Page Settings -->
           <div class="form-section">
             <div class="form-section-title">
-              <i class="fas fa-desktop"></i> Status Page Settings
+              <i class="light-icon-monitor"></i> Status Page Settings
             </div>
 
             <div class="form-group">
@@ -274,7 +278,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="statusPageLabel">
-                  <i class="fas fa-tag"></i> Display Label (optional)
+                  <i class="light-icon-tag"></i> Display Label (optional)
                 </label>
                 <input type="text" id="statusPageLabel" name="statusPageLabel" maxlength="100"
                   value="<%= service && service.statusPageLabel ? service.statusPageLabel : '' %>" 
@@ -282,7 +286,7 @@
               </div>
               <div class="form-group">
                 <label for="statusPageOrder">
-                  <i class="fas fa-sort-numeric-up"></i> Display Order
+                  <i class="light-icon-hash"></i> Display Order
                 </label>
                 <input type="number" id="statusPageOrder" name="statusPageOrder" 
                   value="<%= service && service.statusPageOrder !== undefined ? service.statusPageOrder : 0 %>" 
@@ -294,11 +298,11 @@
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-lg">
-              <i class="fas <%= service && service._id ? 'fa-save' : 'fa-plus' %>"></i>
+              <i class="light-icon-<%= service && service._id ? 'save' : 'plus' %>"></i>
               <span><%= service && service._id ? 'Update Service' : 'Create Service' %></span>
             </button>
             <a href="/admin" class="btn btn-secondary btn-lg">
-              <i class="fas fa-times"></i>
+              <i class="light-icon-x"></i>
               <span>Cancel</span>
             </a>
           </div>

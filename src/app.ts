@@ -30,8 +30,12 @@ async function main() {
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
 
-  // Serve static files from public directory
-  app.use(express.static(path.join(__dirname, 'public')));
+  // Serve static files from public directory with caching
+  app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: config.nodeEnv === 'production' ? '1d' : 0,
+    etag: true,
+    lastModified: true,
+  }));
 
   // Body parsing middleware
   app.use(express.urlencoded({ extended: true }));

@@ -1,27 +1,27 @@
 <%- include('layout', { body: `
   <div class="page-header">
     <div class="page-header-left">
-      <h1><i class="fas fa-cog"></i> Settings</h1>
+      <h1><i class="light-icon-settings"></i> Settings</h1>
       <p class="page-subtitle">Configure your monitoring preferences</p>
     </div>
   </div>
 
-  ${success ? '<div class="alert alert-success"><i class="fas fa-check-circle"></i> ' + success + '</div>' : ''}
-  ${error ? '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> ' + error + '</div>' : ''}
+  ${success ? '<div class="alert alert-success"><i class="light-icon-check-circle"></i> ' + success + '</div>' : ''}
+  ${error ? '<div class="alert alert-error"><i class="light-icon-alert-circle"></i> ' + error + '</div>' : ''}
 
   <div class="settings-layout">
     <div class="settings-sidebar">
       <nav class="settings-nav">
         <button class="settings-nav-item active" data-tab="notifications">
-          <i class="fab fa-discord"></i>
+          <i class="light-icon-bell"></i>
           <span>Notifications</span>
         </button>
         <button class="settings-nav-item" data-tab="account">
-          <i class="fas fa-user-circle"></i>
+          <i class="light-icon-user"></i>
           <span>Account</span>
         </button>
         <button class="settings-nav-item" data-tab="general">
-          <i class="fas fa-sliders-h"></i>
+          <i class="light-icon-sliders"></i>
           <span>General</span>
         </button>
       </nav>
@@ -32,7 +32,7 @@
       <div class="tab-content active" id="notifications">
         <div class="card">
           <div class="card-header">
-            <i class="fab fa-discord"></i>
+            <i class="light-icon-bell"></i>
             <span>Discord Notifications</span>
           </div>
           <div class="card-body">
@@ -52,27 +52,27 @@
               
               <div class="form-group">
                 <label for="discordWebhookUrl">
-                  <i class="fas fa-link"></i> Webhook URL
+                  <i class="light-icon-link"></i> Webhook URL
                 </label>
                 <div class="input-with-icon">
-                  <i class="fab fa-discord input-icon"></i>
+                  <i class="light-icon-link input-icon"></i>
                   <input type="url" id="discordWebhookUrl" name="discordWebhookUrl" 
                          value="${settings.discord_webhook_url || ''}" 
                          placeholder="https://discord.com/api/webhooks/...">
                 </div>
                 <small class="form-help">
-                  <i class="fas fa-info-circle"></i>
+                  <i class="light-icon-info"></i>
                   Get this from Discord: Server Settings → Integrations → Webhooks
                 </small>
               </div>
 
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-save"></i>
+                  <i class="light-icon-save"></i>
                   <span>Save Settings</span>
                 </button>
                 <button type="button" class="btn btn-secondary" id="testDiscord">
-                  <i class="fas fa-paper-plane"></i>
+                  <i class="light-icon-send"></i>
                   <span>Test Notification</span>
                 </button>
               </div>
@@ -85,7 +85,7 @@
       <div class="tab-content" id="account">
         <div class="card mb-6">
           <div class="card-header">
-            <i class="fas fa-user"></i>
+            <i class="light-icon-user"></i>
             <span>Profile Information</span>
           </div>
           <div class="card-body">
@@ -93,9 +93,9 @@
               <img src="https://www.gravatar.com/avatar/${typeof gravatarHash !== 'undefined' ? gravatarHash : '00000000000000000000000000000000'}?s=120&d=identicon" alt="Avatar" class="profile-avatar">
               <div class="profile-info">
                 <h3>${username}</h3>
-                <span class="profile-role"><i class="fas fa-shield-alt"></i> Administrator</span>
+                <span class="profile-role"><i class="light-icon-shield"></i> Administrator</span>
                 <a href="https://gravatar.com" target="_blank" class="btn btn-sm btn-secondary mt-2">
-                  <i class="fas fa-external-link-alt"></i>
+                  <i class="light-icon-external-link"></i>
                   <span>Change Avatar on Gravatar</span>
                 </a>
               </div>
@@ -105,21 +105,21 @@
 
         <div class="card mb-6">
           <div class="card-header">
-            <i class="fas fa-user-edit"></i>
+            <i class="light-icon-edit"></i>
             <span>Update Username</span>
           </div>
           <div class="card-body">
             <form action="/admin/settings/account/username" method="POST">
               <div class="form-group">
                 <label for="currentUsername">
-                  <i class="fas fa-user"></i> Current Username
+                  <i class="light-icon-user"></i> Current Username
                 </label>
                 <input type="text" id="currentUsername" value="${username}" disabled>
               </div>
               
               <div class="form-group">
                 <label for="newUsername">
-                  <i class="fas fa-user-plus"></i> New Username
+                  <i class="light-icon-user-plus"></i> New Username
                 </label>
                 <input type="text" id="newUsername" name="newUsername" 
                        placeholder="Enter new username" minlength="3" maxlength="50" required>
@@ -127,7 +127,7 @@
 
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-save"></i>
+                  <i class="light-icon-save"></i>
                   <span>Update Username</span>
                 </button>
               </div>
@@ -137,30 +137,30 @@
 
         <div class="card mb-6">
           <div class="card-header">
-            <i class="fas fa-envelope"></i>
+            <i class="light-icon-mail"></i>
             <span>Email Address</span>
           </div>
           <div class="card-body">
             <form action="/admin/settings/account/email" method="POST">
               <div class="form-group">
                 <label for="email">
-                  <i class="fas fa-envelope"></i> Email (for Gravatar)
+                  <i class="light-icon-mail"></i> Email (for Gravatar)
                 </label>
                 <div class="input-with-icon">
-                  <i class="fas fa-envelope input-icon"></i>
+                  <i class="light-icon-mail input-icon"></i>
                   <input type="email" id="email" name="email" 
                          value="${typeof email !== 'undefined' && email ? email : ''}" 
                          placeholder="your@email.com">
                 </div>
                 <small class="form-help">
-                  <i class="fas fa-info-circle"></i>
+                  <i class="light-icon-info"></i>
                   Your avatar is loaded from <a href="https://gravatar.com" target="_blank">Gravatar</a> based on this email
                 </small>
               </div>
 
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-save"></i>
+                  <i class="light-icon-save"></i>
                   <span>Update Email</span>
                 </button>
               </div>
@@ -170,27 +170,27 @@
 
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-lock"></i>
+            <i class="light-icon-lock"></i>
             <span>Change Password</span>
           </div>
           <div class="card-body">
             <form action="/admin/settings/account/password" method="POST">
               <div class="form-group">
                 <label for="currentPassword">
-                  <i class="fas fa-key"></i> Current Password
+                  <i class="light-icon-key"></i> Current Password
                 </label>
                 <div class="input-with-icon">
-                  <i class="fas fa-lock input-icon"></i>
+                  <i class="light-icon-lock input-icon"></i>
                   <input type="password" id="currentPassword" name="currentPassword" required placeholder="Enter current password">
                 </div>
               </div>
               
               <div class="form-group">
                 <label for="newPassword">
-                  <i class="fas fa-lock"></i> New Password
+                  <i class="light-icon-lock"></i> New Password
                 </label>
                 <div class="input-with-icon">
-                  <i class="fas fa-lock input-icon"></i>
+                  <i class="light-icon-lock input-icon"></i>
                   <input type="password" id="newPassword" name="newPassword" 
                          placeholder="Minimum 8 characters" minlength="8" required>
                 </div>
@@ -198,17 +198,17 @@
               
               <div class="form-group">
                 <label for="confirmPassword">
-                  <i class="fas fa-check-double"></i> Confirm New Password
+                  <i class="light-icon-check-square"></i> Confirm New Password
                 </label>
                 <div class="input-with-icon">
-                  <i class="fas fa-lock input-icon"></i>
+                  <i class="light-icon-lock input-icon"></i>
                   <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm new password">
                 </div>
               </div>
 
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-key"></i>
+                  <i class="light-icon-key"></i>
                   <span>Change Password</span>
                 </button>
               </div>
@@ -221,32 +221,32 @@
       <div class="tab-content" id="general">
         <div class="card">
           <div class="card-header">
-            <i class="fas fa-sliders-h"></i>
+            <i class="light-icon-sliders"></i>
             <span>General Settings</span>
           </div>
           <div class="card-body">
             <form action="/admin/settings/general" method="POST">
               <div class="form-group">
                 <label for="siteName">
-                  <i class="fas fa-heading"></i> Site Name
+                  <i class="light-icon-type"></i> Site Name
                 </label>
                 <input type="text" id="siteName" name="siteName" 
                        value="${settings.site_name || 'ApexMonitor'}" 
                        placeholder="ApexMonitor">
                 <small class="form-help">
-                  <i class="fas fa-info-circle"></i>
+                  <i class="light-icon-info"></i>
                   Displayed on the status page header
                 </small>
               </div>
 
               <div class="form-section-title">
-                <i class="fas fa-clock"></i> Monitoring Schedule
+                <i class="light-icon-clock"></i> Monitoring Schedule
               </div>
 
               <div class="form-row">
                 <div class="form-group">
                   <label for="schedulerIntervalSeconds">
-                    <i class="fas fa-stopwatch"></i> Check Interval (seconds)
+                    <i class="light-icon-watch"></i> Check Interval (seconds)
                   </label>
                   <input type="number" id="schedulerIntervalSeconds" name="schedulerIntervalSeconds" 
                          value="${settings.scheduler_interval_seconds || '60'}" min="30" max="3600">
@@ -255,7 +255,7 @@
 
                 <div class="form-group">
                   <label for="consecutiveFailuresThreshold">
-                    <i class="fas fa-exclamation-triangle"></i> Failures Before Down
+                    <i class="light-icon-alert-triangle"></i> Failures Before Down
                   </label>
                   <input type="number" id="consecutiveFailuresThreshold" name="consecutiveFailuresThreshold" 
                          value="${settings.consecutive_failures_threshold || '3'}" min="1" max="10">
@@ -264,13 +264,13 @@
               </div>
 
               <div class="form-section-title">
-                <i class="fas fa-database"></i> Data Management
+                <i class="light-icon-database"></i> Data Management
               </div>
 
               <div class="form-row">
                 <div class="form-group">
                   <label for="checkRetentionDays">
-                    <i class="fas fa-calendar-alt"></i> Data Retention (days)
+                    <i class="light-icon-calendar"></i> Data Retention (days)
                   </label>
                   <input type="number" id="checkRetentionDays" name="checkRetentionDays" 
                          value="${settings.check_retention_days || '30'}" min="1" max="365">
@@ -279,7 +279,7 @@
 
                 <div class="form-group">
                   <label for="incidentCooldownMinutes">
-                    <i class="fas fa-hourglass-half"></i> Notification Cooldown (minutes)
+                    <i class="light-icon-clock"></i> Notification Cooldown (minutes)
                   </label>
                   <input type="number" id="incidentCooldownMinutes" name="incidentCooldownMinutes" 
                          value="${settings.incident_cooldown_minutes || '10'}" min="1" max="60">
@@ -289,7 +289,7 @@
 
               <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-save"></i>
+                  <i class="light-icon-save"></i>
                   <span>Save General Settings</span>
                 </button>
               </div>
