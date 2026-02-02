@@ -1,4 +1,4 @@
-import { IService } from '../models';
+import { Service } from '../models';
 
 /**
  * Incident event type
@@ -10,7 +10,7 @@ export type IncidentEventType = 'incident_started' | 'incident_resolved';
  */
 export interface IncidentEvent {
   type: IncidentEventType;
-  service: IService;
+  service: Service;
   incidentId: string;
   startedAt: Date;
   resolvedAt?: Date;

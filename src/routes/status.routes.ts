@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { Op } from 'sequelize';
 import { Service, Check, Incident } from '../models';
 
 const router = Router();
@@ -10,28 +11,36 @@ const router = Router();
 router.get('/', async (req: Request, res: Response) => {
   try {
     // Get only services that should be shown on status page
-    const services = await Service.find({ showOnStatusPage: true }).sort({
-      statusPageOrder: 1,
-      group: 1,
-      name: 1,
+    const services = await Service.findAll({
+      where: { showOnStatusPage: true },
+      order: [
+        ['statusPageOrder', 'ASC'],
+        ['group', 'ASC'],
+        ['name', 'ASC'],
+      ],
     });
 
     // Get latest check and incident status for each service
     const servicesWithStatus = await Promise.all(
       services.map(async (service) => {
-        const latestCheck = await Check.findOne({ serviceId: service._id })
-          .sort({ checkedAt: -1 })
-          .limit(1);
+        const latestCheck = await Check.findOne({
+          where: { serviceId: service.id },
+          order: [['checkedAt', 'DESC']],
+        });
 
         const activeIncident = await Incident.findOne({
-          serviceId: service._id,
-          resolvedAt: { $exists: false },
+          where: {
+            serviceId: service.id,
+            resolvedAt: { [Op.eq]: null as any },
+          },
         });
 
         // Get last 90 checks for uptime display (last ~90 minutes with 1-min intervals)
-        const recentChecks = await Check.find({ serviceId: service._id })
-          .sort({ checkedAt: -1 })
-          .limit(90);
+        const recentChecks = await Check.findAll({
+          where: { serviceId: service.id },
+          order: [['checkedAt', 'DESC']],
+          limit: 90,
+        });
 
         // Calculate uptime percentage from recent checks
         const totalChecks = recentChecks.length;
@@ -47,7 +56,7 @@ router.get('/', async (req: Request, res: Response) => {
         }
 
         return {
-          id: service._id,
+          id: service.id,
           name: service.statusPageLabel || service.name,
           group: service.group,
           status,
@@ -85,18 +94,20 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     // Get recent incidents for display (last 10)
-    const serviceIds = services.map((s) => s._id);
-    const recentIncidents = await Incident.find({
-      serviceId: { $in: serviceIds },
-    })
-      .populate('serviceId')
-      .sort({ startedAt: -1 })
-      .limit(10);
+    const serviceIds = services.map((s) => s.id);
+    const recentIncidents = await Incident.findAll({
+      where: {
+        serviceId: { [Op.in]: serviceIds },
+      },
+      include: [{ model: Service, as: 'service' }],
+      order: [['startedAt', 'DESC']],
+      limit: 10,
+    });
 
     const formattedIncidents = recentIncidents.map((incident) => {
-      const service = incident.serviceId as any;
+      const service = incident.service;
       return {
-        id: incident._id,
+        id: incident.id,
         serviceName: service?.statusPageLabel || service?.name || 'Unknown',
         startedAt: incident.startedAt,
         resolvedAt: incident.resolvedAt,
@@ -126,21 +137,27 @@ router.get('/', async (req: Request, res: Response) => {
  */
 router.get('/api/status', async (req: Request, res: Response) => {
   try {
-    const services = await Service.find({ showOnStatusPage: true }).sort({
-      statusPageOrder: 1,
-      group: 1,
-      name: 1,
+    const services = await Service.findAll({
+      where: { showOnStatusPage: true },
+      order: [
+        ['statusPageOrder', 'ASC'],
+        ['group', 'ASC'],
+        ['name', 'ASC'],
+      ],
     });
 
     const servicesWithStatus = await Promise.all(
       services.map(async (service) => {
-        const latestCheck = await Check.findOne({ serviceId: service._id })
-          .sort({ checkedAt: -1 })
-          .limit(1);
+        const latestCheck = await Check.findOne({
+          where: { serviceId: service.id },
+          order: [['checkedAt', 'DESC']],
+        });
 
         const activeIncident = await Incident.findOne({
-          serviceId: service._id,
-          resolvedAt: { $exists: false },
+          where: {
+            serviceId: service.id,
+            resolvedAt: { [Op.eq]: null as any },
+          },
         });
 
         let status: 'operational' | 'degraded' | 'down' | 'unknown' = 'unknown';
@@ -151,7 +168,7 @@ router.get('/api/status', async (req: Request, res: Response) => {
         }
 
         return {
-          id: service._id,
+          id: service.id,
           name: service.statusPageLabel || service.name,
           group: service.group,
           status,

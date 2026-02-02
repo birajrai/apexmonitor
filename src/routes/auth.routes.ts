@@ -8,7 +8,7 @@ const router = Router();
  * Check if admin setup is needed (no admin exists)
  */
 async function isSetupNeeded(): Promise<boolean> {
-    const adminCount = await AdminUser.countDocuments();
+    const adminCount = await AdminUser.count();
     return adminCount === 0;
 }
 
@@ -48,7 +48,7 @@ router.post('/login', async (req: Request, res: Response) => {
         }
 
         // Find admin user
-        const admin = await AdminUser.findOne({ username });
+        const admin = await AdminUser.findOne({ where: { username } });
 
         if (!admin) {
             return res.render('login', {
@@ -70,7 +70,7 @@ router.post('/login', async (req: Request, res: Response) => {
         }
 
         // Set session
-        req.session.adminId = admin._id.toString();
+        req.session.adminId = admin.id.toString();
         req.session.adminUsername = admin.username;
 
         console.log(`[Auth] Admin "${admin.username}" logged in`);
@@ -141,17 +141,15 @@ router.post('/setup', async (req: Request, res: Response) => {
         // Hash password and create admin
         const passwordHash = await bcrypt.hash(password, 12);
 
-        const admin = new AdminUser({
+        const admin = await AdminUser.create({
             username,
             passwordHash,
         });
 
-        await admin.save();
-
         console.log(`[Auth] Admin "${username}" created during setup`);
 
         // Auto-login after setup
-        req.session.adminId = admin._id.toString();
+        req.session.adminId = admin.id.toString();
         req.session.adminUsername = admin.username;
 
         res.redirect('/admin');

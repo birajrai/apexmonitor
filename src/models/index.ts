@@ -1,5 +1,5 @@
 // Re-export all models for convenience
-export { AdminUser, IAdminUser } from './AdminUser';
-export { Service, IService, MonitorType, MonitorConfig, HttpMonitorConfig, PingMonitorConfig, DnsMonitorConfig } from './Service';
-export { Check, ICheck, CheckStatus } from './Check';
-export { Incident, IIncident } from './Incident';
+export { AdminUser, AdminUserAttributes, AdminUserCreationAttributes } from './AdminUser';
+export { Service, ServiceAttributes, ServiceCreationAttributes, MonitorType, MonitorConfig, HttpMonitorConfig, PingMonitorConfig, DnsMonitorConfig } from './Service';
+export { Check, CheckAttributes, CheckCreationAttributes, CheckStatus } from './Check';
+export { Incident, IncidentAttributes, IncidentCreationAttributes } from './Incident';

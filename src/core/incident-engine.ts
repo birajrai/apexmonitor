@@ -1,5 +1,5 @@
-import { Types } from 'mongoose';
-import { IService, Incident, IIncident, Check } from '../models';
+import { Op } from 'sequelize';
+import { Service, Incident, Check } from '../models';
 import { registry } from './registry';
 import { IncidentEvent } from '../notifiers';
 import { config } from '../config';
@@ -37,11 +37,11 @@ class IncidentEngine {
    * @param error Optional error message if the check failed
    */
   async processCheck(
-    service: IService,
+    service: Service,
     status: 'UP' | 'DOWN',
     error?: string
   ): Promise<void> {
-    const serviceId = service._id.toString();
+    const serviceId = service.id.toString();
     const state = this.getState(serviceId);
 
     if (status === 'DOWN') {
@@ -55,12 +55,12 @@ class IncidentEngine {
    * Handle a failed check
    */
   private async handleFailure(
-    service: IService,
+    service: Service,
     state: ServiceState,
     error?: string
   ): Promise<void> {
     state.consecutiveFailures++;
-    const serviceId = service._id.toString();
+    const serviceId = service.id.toString();
 
     console.log(
       `[Incident Engine] Service "${service.name}" failure ${state.consecutiveFailures}/${config.consecutiveFailuresThreshold}`
@@ -75,7 +75,7 @@ class IncidentEngine {
         // Create new incident
         const incident = await this.createIncident(service, error);
         console.log(
-          `[Incident Engine] Created incident for "${service.name}": ${incident._id}`
+          `[Incident Engine] Created incident for "${service.name}": ${incident.id}`
         );
       }
     }
@@ -84,8 +84,8 @@ class IncidentEngine {
   /**
    * Handle a successful check
    */
-  private async handleSuccess(service: IService, state: ServiceState): Promise<void> {
-    const serviceId = service._id.toString();
+  private async handleSuccess(service: Service, state: ServiceState): Promise<void> {
+    const serviceId = service.id.toString();
 
     // Reset consecutive failures on any success
     if (state.consecutiveFailures > 0) {
@@ -98,42 +98,42 @@ class IncidentEngine {
 
     if (activeIncident) {
       await this.resolveIncident(service, activeIncident);
-      console.log(`[Incident Engine] Resolved incident for "${service.name}": ${activeIncident._id}`);
+      console.log(`[Incident Engine] Resolved incident for "${service.name}": ${activeIncident.id}`);
     }
   }
 
   /**
    * Get active (unresolved) incident for a service
    */
-  private async getActiveIncident(serviceId: string): Promise<IIncident | null> {
+  private async getActiveIncident(serviceId: string): Promise<Incident | null> {
     return Incident.findOne({
-      serviceId: new Types.ObjectId(serviceId),
-      resolvedAt: { $exists: false },
+      where: {
+        serviceId: parseInt(serviceId, 10),
+        resolvedAt: { [Op.eq]: null as any },
+      },
     });
   }
 
   /**
    * Create a new incident and send notification
    */
-  private async createIncident(service: IService, error?: string): Promise<IIncident> {
-    const incident = new Incident({
-      serviceId: service._id,
+  private async createIncident(service: Service, error?: string): Promise<Incident> {
+    const incident = await Incident.create({
+      serviceId: service.id,
       startedAt: new Date(),
     });
-
-    await incident.save();
 
     // Send notification
     await this.sendNotification({
       type: 'incident_started',
       service,
-      incidentId: incident._id.toString(),
+      incidentId: incident.id.toString(),
       startedAt: incident.startedAt,
       error,
     });
 
     // Update last notification time
-    const state = this.getState(service._id.toString());
+    const state = this.getState(service.id.toString());
     state.lastNotificationAt = new Date();
 
     return incident;
@@ -142,23 +142,22 @@ class IncidentEngine {
   /**
    * Resolve an incident and send notification
    */
-  private async resolveIncident(service: IService, incident: IIncident): Promise<void> {
-    const state = this.getState(service._id.toString());
+  private async resolveIncident(service: Service, incident: Incident): Promise<void> {
+    const state = this.getState(service.id.toString());
     const now = new Date();
 
     // Check cooldown window - only send notification if enough time has passed
     const shouldNotify = this.shouldSendNotification(state, incident.startedAt);
 
     // Update incident
-    incident.resolvedAt = now;
-    await incident.save();
+    await incident.update({ resolvedAt: now });
 
     // Send notification if not in cooldown
     if (shouldNotify) {
       await this.sendNotification({
         type: 'incident_resolved',
         service,
-        incidentId: incident._id.toString(),
+        incidentId: incident.id.toString(),
         startedAt: incident.startedAt,
         resolvedAt: now,
       });
@@ -203,9 +202,10 @@ class IncidentEngine {
    * Returns 'UP', 'DOWN', or 'UNKNOWN'
    */
   async getServiceStatus(serviceId: string): Promise<'UP' | 'DOWN' | 'UNKNOWN'> {
-    const recentCheck = await Check.findOne({ serviceId: new Types.ObjectId(serviceId) })
-      .sort({ checkedAt: -1 })
-      .limit(1);
+    const recentCheck = await Check.findOne({
+      where: { serviceId: parseInt(serviceId, 10) },
+      order: [['checkedAt', 'DESC']],
+    });
 
     if (!recentCheck) {
       return 'UNKNOWN';

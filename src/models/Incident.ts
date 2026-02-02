@@ -1,36 +1,80 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
+import { DataTypes, Model, Optional } from 'sequelize';
+import { sequelize } from '../database';
+import { Service } from './Service';
 
 /**
- * Incident interface
- * Represents a service outage incident
+ * Incident attributes interface
  */
-export interface IIncident extends Document {
-  serviceId: Types.ObjectId;
+export interface IncidentAttributes {
+  id: number;
+  serviceId: number;
   startedAt: Date;
   resolvedAt?: Date;
 }
 
-const IncidentSchema = new Schema<IIncident>({
-  serviceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Service',
-    required: true,
-    index: true,
-  },
-  startedAt: {
-    type: Date,
-    required: true,
-    default: Date.now,
-  },
-  resolvedAt: {
-    type: Date,
-  },
-});
+/**
+ * Incident creation attributes (id and timestamps are auto-generated)
+ */
+export interface IncidentCreationAttributes extends Optional<IncidentAttributes, 'id' | 'startedAt' | 'resolvedAt'> {}
 
-// Index for finding active incidents (unresolved)
-IncidentSchema.index({ serviceId: 1, resolvedAt: 1 });
+/**
+ * Incident model
+ * Represents a service outage incident
+ */
+export class Incident extends Model<IncidentAttributes, IncidentCreationAttributes> implements IncidentAttributes {
+  public id!: number;
+  public serviceId!: number;
+  public startedAt!: Date;
+  public resolvedAt?: Date;
 
-// Index for querying incidents by time
-IncidentSchema.index({ startedAt: -1 });
+  // Association
+  public service?: Service;
+}
 
-export const Incident = mongoose.model<IIncident>('Incident', IncidentSchema);
+Incident.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    serviceId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'services',
+        key: 'id',
+      },
+      onDelete: 'CASCADE',
+    },
+    startedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    resolvedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+  },
+  {
+    sequelize,
+    tableName: 'incidents',
+    timestamps: false,
+    indexes: [
+      {
+        fields: ['serviceId'],
+      },
+      {
+        fields: ['serviceId', 'resolvedAt'],
+      },
+      {
+        fields: ['startedAt'],
+      },
+    ],
+  }
+);
+
+// Define association
+Incident.belongsTo(Service, { foreignKey: 'serviceId', as: 'service' });
+Service.hasMany(Incident, { foreignKey: 'serviceId', as: 'incidents' });

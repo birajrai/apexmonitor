@@ -1,4 +1,4 @@
-import { Service, Check, IService } from '../models';
+import { Service, Check, ServiceAttributes } from '../models';
 import { registry } from './registry';
 import { incidentEngine } from './incident-engine';
 import { config } from '../config';
@@ -66,7 +66,7 @@ class Scheduler {
 
     try {
       // Load all active services
-      const services = await Service.find({ isActive: true });
+      const services = await Service.findAll({ where: { isActive: true } });
 
       if (services.length === 0) {
         console.log('[Scheduler] No active services to check');
@@ -90,7 +90,7 @@ class Scheduler {
   /**
    * Run a health check for a single service
    */
-  private async checkService(service: IService): Promise<void> {
+  private async checkService(service: Service): Promise<void> {
     try {
       // Get the appropriate monitor plugin
       const monitor = registry.getMonitor(service.monitorType);
@@ -104,15 +104,13 @@ class Scheduler {
       const result = await monitor.check(service.monitorConfig);
 
       // Save the check result
-      const check = new Check({
-        serviceId: service._id,
+      await Check.create({
+        serviceId: service.id,
         status: result.status,
         responseTimeMs: result.responseTimeMs,
         error: result.error,
         checkedAt: new Date(),
       });
-
-      await check.save();
 
       // Process through incident engine
       await incidentEngine.processCheck(service, result.status, result.error);
@@ -130,15 +128,14 @@ class Scheduler {
       try {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-        const check = new Check({
-          serviceId: service._id,
+        await Check.create({
+          serviceId: service.id,
           status: 'DOWN',
           responseTimeMs: 0,
           error: `Monitor error: ${errorMessage}`,
           checkedAt: new Date(),
         });
 
-        await check.save();
         await incidentEngine.processCheck(service, 'DOWN', errorMessage);
       } catch (saveError) {
         console.error(`[Scheduler] Failed to save error check for "${service.name}":`, saveError);
@@ -150,7 +147,7 @@ class Scheduler {
    * Force an immediate check for a specific service
    */
   async checkServiceNow(serviceId: string): Promise<void> {
-    const service = await Service.findById(serviceId);
+    const service = await Service.findByPk(serviceId);
 
     if (!service) {
       throw new Error('Service not found');

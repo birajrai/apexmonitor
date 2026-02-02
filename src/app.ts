@@ -1,10 +1,10 @@
 import express, { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
-import mongoose from 'mongoose';
-import MongoStore from 'connect-mongo';
+import pgSession from 'connect-pg-simple';
 import path from 'path';
 
 import { config } from './config';
+import { sequelize, initializeDatabase, closeDatabase } from './database';
 import { authRoutes, adminRoutes, statusRoutes } from './routes';
 import { scheduler } from './core';
 
@@ -34,22 +34,27 @@ async function main() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
 
-  // Connect to MongoDB
-  console.log('[App] Connecting to MongoDB...');
-  await mongoose.connect(config.mongodbUri);
-  console.log('[App] Connected to MongoDB');
+  // Connect to PostgreSQL
+  console.log('[App] Connecting to PostgreSQL...');
+  await initializeDatabase();
+  console.log('[App] Connected to PostgreSQL');
 
-  // Session middleware with MongoDB store
+  // Session middleware with PostgreSQL store
+  const PgStore = pgSession(session);
+  
+  // Create connection string for session store
+  const connectionString = `postgresql://${config.database.user}:${config.database.password}@${config.database.host}:${config.database.port}/${config.database.name}`;
+  
   app.use(
     session({
+      store: new PgStore({
+        conString: connectionString,
+        tableName: 'sessions',
+        createTableIfMissing: true,
+      }),
       secret: config.sessionSecret,
       resave: false,
       saveUninitialized: false,
-      store: MongoStore.create({
-        mongoUrl: config.mongodbUri,
-        collectionName: 'sessions',
-        ttl: 24 * 60 * 60, // 1 day
-      }),
       cookie: {
         secure: config.nodeEnv === 'production',
         httpOnly: true,
@@ -91,7 +96,7 @@ async function main() {
   process.on('SIGINT', async () => {
     console.log('\n[App] Shutting down...');
     scheduler.stop();
-    await mongoose.connection.close();
+    await closeDatabase();
     console.log('[App] Goodbye!');
     process.exit(0);
   });
@@ -99,7 +104,7 @@ async function main() {
   process.on('SIGTERM', async () => {
     console.log('\n[App] Received SIGTERM, shutting down...');
     scheduler.stop();
-    await mongoose.connection.close();
+    await closeDatabase();
     process.exit(0);
   });
 

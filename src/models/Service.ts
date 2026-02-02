@@ -1,4 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { DataTypes, Model, Optional } from 'sequelize';
+import { sequelize } from '../database';
 
 /**
  * Monitor types supported by the system
@@ -39,10 +40,10 @@ export interface DnsMonitorConfig {
 export type MonitorConfig = HttpMonitorConfig | PingMonitorConfig | DnsMonitorConfig;
 
 /**
- * Service interface
- * Represents a monitored service
+ * Service attributes interface
  */
-export interface IService extends Document {
+export interface ServiceAttributes {
+  id: number;
   name: string;
   group: string;
   monitorType: MonitorType;
@@ -50,61 +51,94 @@ export interface IService extends Document {
   isActive: boolean;
   showOnStatusPage: boolean;
   statusPageLabel?: string;
-  statusPageOrder?: number;
+  statusPageOrder: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const ServiceSchema = new Schema<IService>(
+/**
+ * Service creation attributes (id and timestamps are auto-generated)
+ */
+export interface ServiceCreationAttributes extends Optional<ServiceAttributes, 'id' | 'group' | 'isActive' | 'showOnStatusPage' | 'statusPageOrder' | 'createdAt' | 'updatedAt'> {}
+
+/**
+ * Service model
+ * Represents a monitored service
+ */
+export class Service extends Model<ServiceAttributes, ServiceCreationAttributes> implements ServiceAttributes {
+  public id!: number;
+  public name!: string;
+  public group!: string;
+  public monitorType!: MonitorType;
+  public monitorConfig!: MonitorConfig;
+  public isActive!: boolean;
+  public showOnStatusPage!: boolean;
+  public statusPageLabel?: string;
+  public statusPageOrder!: number;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+}
+
+Service.init(
   {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
     name: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 100,
+      type: DataTypes.STRING(100),
+      allowNull: false,
     },
     group: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 50,
-      default: 'Default',
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: 'Default',
     },
     monitorType: {
-      type: String,
-      required: true,
-      enum: ['http', 'ping', 'dns'],
+      type: DataTypes.ENUM('http', 'ping', 'dns'),
+      allowNull: false,
     },
     monitorConfig: {
-      type: Schema.Types.Mixed,
-      required: true,
+      type: DataTypes.JSONB,
+      allowNull: false,
     },
     isActive: {
-      type: Boolean,
-      default: true,
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
     showOnStatusPage: {
-      type: Boolean,
-      default: true,
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
     statusPageLabel: {
-      type: String,
-      trim: true,
-      maxlength: 100,
+      type: DataTypes.STRING(100),
+      allowNull: true,
     },
     statusPageOrder: {
-      type: Number,
-      default: 0,
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
   },
   {
+    sequelize,
+    tableName: 'services',
     timestamps: true,
+    indexes: [
+      {
+        fields: ['isActive'],
+      },
+      {
+        fields: ['showOnStatusPage', 'statusPageOrder'],
+      },
+    ],
   }
 );
-
-// Index for efficient querying of active services
-ServiceSchema.index({ isActive: 1 });
-// Index for status page queries
-ServiceSchema.index({ showOnStatusPage: 1, statusPageOrder: 1 });
-
-export const Service = mongoose.model<IService>('Service', ServiceSchema);

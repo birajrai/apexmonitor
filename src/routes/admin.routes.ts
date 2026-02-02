@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { Service, Check, Incident, MonitorType, MonitorConfig } from '../models';
+import { Op, WhereOptions } from 'sequelize';
+import { Service, Check, Incident, MonitorType, MonitorConfig, IncidentAttributes } from '../models';
 import { scheduler, incidentEngine } from '../core';
 
 const router = Router();
@@ -24,21 +25,29 @@ router.use(requireAuth);
  */
 router.get('/', async (req: Request, res: Response) => {
     try {
-        const services = await Service.find().sort({ group: 1, name: 1 });
+        const services = await Service.findAll({
+            order: [['group', 'ASC'], ['name', 'ASC']],
+        });
 
         // Get latest check for each service
         const servicesWithStatus = await Promise.all(
             services.map(async service => {
-                const latestCheck = await Check.findOne({ serviceId: service._id }).sort({ checkedAt: -1 }).limit(1);
+                const latestCheck = await Check.findOne({
+                    where: { serviceId: service.id },
+                    order: [['checkedAt', 'DESC']],
+                });
 
                 const activeIncident = await Incident.findOne({
-                    serviceId: service._id,
-                    resolvedAt: { $exists: false },
+                    where: {
+                        serviceId: service.id,
+                        resolvedAt: { [Op.eq]: null as any },
+                    },
                 });
 
                 return {
-                    ...service.toObject(),
-                    latestCheck,
+                    ...service.toJSON(),
+                    _id: service.id, // For backward compatibility with templates
+                    latestCheck: latestCheck ? latestCheck.toJSON() : null,
                     hasActiveIncident: !!activeIncident,
                 };
             }),
@@ -133,18 +142,16 @@ router.post('/services', async (req: Request, res: Response) => {
                 throw new Error(`Invalid monitor type: ${monitorType}`);
         }
 
-        const service = new Service({
+        const service = await Service.create({
             name,
             group: group || 'Default',
             monitorType,
-            monitorConfig,
+            monitorConfig: monitorConfig as MonitorConfig,
             isActive: isActive === 'on',
             showOnStatusPage: showOnStatusPage === 'on',
             statusPageLabel: statusPageLabel || undefined,
             statusPageOrder: parseInt(statusPageOrder, 10) || 0,
         });
-
-        await service.save();
 
         console.log(`[Admin] Created service: ${service.name}`);
 
@@ -167,7 +174,7 @@ router.post('/services', async (req: Request, res: Response) => {
  */
 router.get('/services/:id/edit', async (req: Request, res: Response) => {
     try {
-        const service = await Service.findById(req.params.id);
+        const service = await Service.findByPk(req.params.id);
 
         if (!service) {
             return res.status(404).render('admin/error', {
@@ -179,7 +186,7 @@ router.get('/services/:id/edit', async (req: Request, res: Response) => {
 
         res.render('admin/service-form', {
             title: 'Edit Service',
-            service,
+            service: { ...service.toJSON(), _id: service.id },
             monitorTypes: ['http', 'ping', 'dns'],
             error: null,
             username: req.session.adminUsername,
@@ -200,7 +207,7 @@ router.get('/services/:id/edit', async (req: Request, res: Response) => {
  */
 router.post('/services/:id', async (req: Request, res: Response) => {
     try {
-        const service = await Service.findById(req.params.id);
+        const service = await Service.findByPk(req.params.id);
 
         if (!service) {
             return res.status(404).render('admin/error', {
@@ -259,16 +266,16 @@ router.post('/services/:id', async (req: Request, res: Response) => {
         }
 
         // Update service
-        service.name = name;
-        service.group = group || 'Default';
-        service.monitorType = monitorType;
-        service.monitorConfig = monitorConfig;
-        service.isActive = isActive === 'on';
-        service.showOnStatusPage = showOnStatusPage === 'on';
-        service.statusPageLabel = statusPageLabel || undefined;
-        service.statusPageOrder = parseInt(statusPageOrder, 10) || 0;
-
-        await service.save();
+        await service.update({
+            name,
+            group: group || 'Default',
+            monitorType,
+            monitorConfig,
+            isActive: isActive === 'on',
+            showOnStatusPage: showOnStatusPage === 'on',
+            statusPageLabel: statusPageLabel || undefined,
+            statusPageOrder: parseInt(statusPageOrder, 10) || 0,
+        });
 
         console.log(`[Admin] Updated service: ${service.name}`);
 
@@ -291,7 +298,7 @@ router.post('/services/:id', async (req: Request, res: Response) => {
  */
 router.post('/services/:id/delete', async (req: Request, res: Response) => {
     try {
-        const service = await Service.findById(req.params.id);
+        const service = await Service.findByPk(req.params.id);
 
         if (!service) {
             return res.status(404).render('admin/error', {
@@ -301,15 +308,15 @@ router.post('/services/:id/delete', async (req: Request, res: Response) => {
             });
         }
 
-        // Delete related checks and incidents
-        await Check.deleteMany({ serviceId: service._id });
-        await Incident.deleteMany({ serviceId: service._id });
+        // Delete related checks and incidents (CASCADE should handle this, but be explicit)
+        await Check.destroy({ where: { serviceId: service.id } });
+        await Incident.destroy({ where: { serviceId: service.id } });
 
         // Clear incident engine state
-        incidentEngine.clearServiceState(service._id.toString());
+        incidentEngine.clearServiceState(service.id.toString());
 
         // Delete the service
-        await service.deleteOne();
+        await service.destroy();
 
         console.log(`[Admin] Deleted service: ${service.name}`);
 
@@ -348,7 +355,7 @@ router.post('/services/:id/check', async (req: Request, res: Response) => {
  */
 router.get('/services/:id/history', async (req: Request, res: Response) => {
     try {
-        const service = await Service.findById(req.params.id);
+        const service = await Service.findByPk(req.params.id);
 
         if (!service) {
             return res.status(404).render('admin/error', {
@@ -359,16 +366,24 @@ router.get('/services/:id/history', async (req: Request, res: Response) => {
         }
 
         // Get recent checks (last 100)
-        const checks = await Check.find({ serviceId: service._id }).sort({ checkedAt: -1 }).limit(100);
+        const checks = await Check.findAll({
+            where: { serviceId: service.id },
+            order: [['checkedAt', 'DESC']],
+            limit: 100,
+        });
 
         // Get recent incidents
-        const incidents = await Incident.find({ serviceId: service._id }).sort({ startedAt: -1 }).limit(20);
+        const incidents = await Incident.findAll({
+            where: { serviceId: service.id },
+            order: [['startedAt', 'DESC']],
+            limit: 20,
+        });
 
         res.render('admin/service-history', {
             title: `${service.name} - History`,
-            service,
-            checks,
-            incidents,
+            service: { ...service.toJSON(), _id: service.id },
+            checks: checks.map(c => c.toJSON()),
+            incidents: incidents.map(i => i.toJSON()),
             username: req.session.adminUsername,
         });
     } catch (error) {
@@ -387,11 +402,24 @@ router.get('/services/:id/history', async (req: Request, res: Response) => {
  */
 router.get('/incidents', async (req: Request, res: Response) => {
     try {
-        const incidents = await Incident.find().populate('serviceId').sort({ startedAt: -1 }).limit(100);
+        const incidents = await Incident.findAll({
+            include: [{ model: Service, as: 'service' }],
+            order: [['startedAt', 'DESC']],
+            limit: 100,
+        });
+
+        const formattedIncidents = incidents.map(incident => ({
+            ...incident.toJSON(),
+            _id: incident.id,
+            serviceId: incident.service ? { 
+                ...incident.service.toJSON(), 
+                _id: incident.service.id 
+            } : null,
+        }));
 
         res.render('admin/incidents', {
             title: 'Incidents',
-            incidents,
+            incidents: formattedIncidents,
             username: req.session.adminUsername,
         });
     } catch (error) {
