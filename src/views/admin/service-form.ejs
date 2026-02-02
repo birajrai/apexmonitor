@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - ApexMonitor Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f3f4f6;
+      min-height: 100vh;
+    }
+    .navbar {
+      background-color: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .navbar-brand {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      text-decoration: none;
+    }
+    .navbar-brand span { color: #667eea; }
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .navbar-nav a {
+      color: #6b7280;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .navbar-nav a:hover { color: #667eea; }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .page-header h1 {
+      font-size: 24px;
+      color: #111827;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+      background-color: #e5e7eb;
+      color: #374151;
+    }
+    .btn-secondary:hover {
+      background-color: #d1d5db;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #374151;
+      font-size: 14px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+    }
+    .monitor-config {
+      display: none;
+      padding: 20px;
+      background-color: #f9fafb;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid #e5e7eb;
+    }
+    .monitor-config.active {
+      display: block;
+    }
+    .monitor-config h3 {
+      margin-bottom: 15px;
+      font-size: 16px;
+      color: #374151;
+    }
+    .error-alert {
+      background-color: #fee2e2;
+      border: 1px solid #ef4444;
+      color: #dc2626;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #374151;
+      margin: 30px 0 15px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/admin" class="navbar-brand"><span>Apex</span>Monitor</a>
+    <div class="navbar-nav">
+      <a href="/admin">Dashboard</a>
+      <a href="/admin/incidents">Incidents</a>
+      <a href="/" target="_blank">Status Page</a>
+      <a href="/auth/logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1><%= title %></h1>
+    </div>
+
+    <% if (error) { %>
+      <div class="error-alert"><%= error %></div>
+    <% } %>
+
+    <div class="card">
+      <form action="<%= service && service._id ? '/admin/services/' + service._id : '/admin/services' %>" method="POST">
+        <div class="form-group">
+          <label for="name">Service Name *</label>
+          <input type="text" id="name" name="name" required maxlength="100" 
+            value="<%= service ? service.name : '' %>" 
+            placeholder="e.g., API Server">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="group">Group</label>
+            <input type="text" id="group" name="group" maxlength="50" 
+              value="<%= service ? service.group : 'Default' %>" 
+              placeholder="e.g., Backend">
+          </div>
+
+          <div class="form-group">
+            <label for="monitorType">Monitor Type *</label>
+            <select id="monitorType" name="monitorType" required onchange="showMonitorConfig()">
+              <option value="">Select type...</option>
+              <% monitorTypes.forEach(type => { %>
+                <option value="<%= type %>" <%= service && service.monitorType === type ? 'selected' : '' %>>
+                  <%= type.toUpperCase() %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <!-- HTTP Configuration -->
+        <div id="http-config" class="monitor-config">
+          <h3>HTTP Monitor Configuration</h3>
+          <div class="form-group">
+            <label for="httpUrl">URL *</label>
+            <input type="url" id="httpUrl" name="httpUrl" 
+              value="<%= service && service.monitorType === 'http' ? service.monitorConfig.url : '' %>" 
+              placeholder="https://example.com/health">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="httpMethod">Method</label>
+              <select id="httpMethod" name="httpMethod">
+                <option value="GET" <%= service && service.monitorConfig?.method === 'GET' ? 'selected' : '' %>>GET</option>
+                <option value="POST" <%= service && service.monitorConfig?.method === 'POST' ? 'selected' : '' %>>POST</option>
+                <option value="HEAD" <%= service && service.monitorConfig?.method === 'HEAD' ? 'selected' : '' %>>HEAD</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="httpExpectedStatus">Expected Status Code</label>
+              <input type="number" id="httpExpectedStatus" name="httpExpectedStatus" 
+                value="<%= service && service.monitorConfig?.expectedStatusCode ? service.monitorConfig.expectedStatusCode : 200 %>" 
+                min="100" max="599">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="httpTimeout">Timeout (ms)</label>
+            <input type="number" id="httpTimeout" name="httpTimeout" 
+              value="<%= service && service.monitorConfig?.timeoutMs ? service.monitorConfig.timeoutMs : 30000 %>" 
+              min="1000" max="120000">
+          </div>
+        </div>
+
+        <!-- Ping Configuration -->
+        <div id="ping-config" class="monitor-config">
+          <h3>Ping Monitor Configuration</h3>
+          <div class="form-group">
+            <label for="pingHost">Host *</label>
+            <input type="text" id="pingHost" name="pingHost" 
+              value="<%= service && service.monitorType === 'ping' ? service.monitorConfig.host : '' %>" 
+              placeholder="example.com or 192.168.1.1">
+          </div>
+          <div class="form-group">
+            <label for="pingTimeout">Timeout (ms)</label>
+            <input type="number" id="pingTimeout" name="pingTimeout" 
+              value="<%= service && service.monitorConfig?.timeoutMs ? service.monitorConfig.timeoutMs : 5000 %>" 
+              min="1000" max="60000">
+          </div>
+        </div>
+
+        <!-- DNS Configuration -->
+        <div id="dns-config" class="monitor-config">
+          <h3>DNS Monitor Configuration</h3>
+          <div class="form-group">
+            <label for="dnsHostname">Hostname *</label>
+            <input type="text" id="dnsHostname" name="dnsHostname" 
+              value="<%= service && service.monitorType === 'dns' ? service.monitorConfig.hostname : '' %>" 
+              placeholder="example.com">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dnsRecordType">Record Type</label>
+              <select id="dnsRecordType" name="dnsRecordType">
+                <option value="A" <%= service && service.monitorConfig?.recordType === 'A' ? 'selected' : '' %>>A</option>
+                <option value="AAAA" <%= service && service.monitorConfig?.recordType === 'AAAA' ? 'selected' : '' %>>AAAA</option>
+                <option value="CNAME" <%= service && service.monitorConfig?.recordType === 'CNAME' ? 'selected' : '' %>>CNAME</option>
+                <option value="MX" <%= service && service.monitorConfig?.recordType === 'MX' ? 'selected' : '' %>>MX</option>
+                <option value="TXT" <%= service && service.monitorConfig?.recordType === 'TXT' ? 'selected' : '' %>>TXT</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dnsExpectedValue">Expected Value (optional)</label>
+              <input type="text" id="dnsExpectedValue" name="dnsExpectedValue" 
+                value="<%= service && service.monitorConfig?.expectedValue ? service.monitorConfig.expectedValue : '' %>" 
+                placeholder="e.g., 93.184.216.34">
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Monitoring Settings</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input type="checkbox" id="isActive" name="isActive" 
+                <%= !service || service.isActive ? 'checked' : '' %>>
+              <label for="isActive">Active (run health checks)</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Status Page Settings</div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="showOnStatusPage" name="showOnStatusPage" 
+              <%= !service || service.showOnStatusPage ? 'checked' : '' %>>
+            <label for="showOnStatusPage">Show on public status page</label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="statusPageLabel">Status Page Label (optional)</label>
+            <input type="text" id="statusPageLabel" name="statusPageLabel" maxlength="100"
+              value="<%= service && service.statusPageLabel ? service.statusPageLabel : '' %>" 
+              placeholder="Display name on status page">
+          </div>
+          <div class="form-group">
+            <label for="statusPageOrder">Display Order</label>
+            <input type="number" id="statusPageOrder" name="statusPageOrder" 
+              value="<%= service && service.statusPageOrder !== undefined ? service.statusPageOrder : 0 %>" 
+              min="0">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            <%= service && service._id ? 'Update Service' : 'Create Service' %>
+          </button>
+          <a href="/admin" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function showMonitorConfig() {
+      // Hide all config sections
+      document.querySelectorAll('.monitor-config').forEach(el => {
+        el.classList.remove('active');
+      });
+
+      // Show selected config section
+      const type = document.getElementById('monitorType').value;
+      if (type) {
+        const configEl = document.getElementById(type + '-config');
+        if (configEl) {
+          configEl.classList.add('active');
+        }
+      }
+    }
+
+    // Initialize on page load
+    showMonitorConfig();
+  </script>
+</body>
+</html>
