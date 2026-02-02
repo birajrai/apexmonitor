@@ -4,58 +4,107 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> - ApexMonitor Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <nav class="navbar">
     <div class="navbar-inner">
-      <a href="/admin" class="navbar-brand"><span>Apex</span>Monitor</a>
+      <a href="/admin" class="navbar-brand">
+        <i class="fas fa-chart-line"></i>
+        <span>Apex</span>Monitor
+      </a>
       <div class="navbar-nav">
-        <a href="/admin">Dashboard</a>
-        <a href="/admin/incidents" class="active">Incidents</a>
-        <a href="/admin/settings">Settings</a>
-        <a href="/" target="_blank">Status Page</a>
-        <a href="/auth/logout">Logout</a>
+        <a href="/admin" class="nav-link">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="/admin/incidents" class="nav-link active">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Incidents</span>
+        </a>
+        <a href="/admin/settings" class="nav-link">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+        <a href="/" target="_blank" class="nav-link">
+          <i class="fas fa-external-link-alt"></i>
+          <span>Status Page</span>
+        </a>
+        <div class="nav-divider"></div>
+        <a href="/auth/logout" class="nav-link nav-link-danger">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
       </div>
+      <button class="navbar-toggle" id="navbarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
   </nav>
 
   <div class="container admin-content">
     <div class="page-header">
-      <h1>Incidents</h1>
+      <div class="page-header-left">
+        <h1><i class="fas fa-exclamation-triangle"></i> Incidents</h1>
+        <p class="page-subtitle">View and manage service incidents</p>
+      </div>
     </div>
 
     <div class="card">
       <% if (incidents.length === 0) { %>
         <div class="empty-state">
-          <div class="empty-state-icon">✓</div>
-          <p>No incidents recorded</p>
+          <div class="empty-state-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>All Clear!</h3>
+          <p>No incidents have been recorded yet</p>
         </div>
       <% } else { %>
         <div class="table-wrapper">
-          <table>
+          <table class="incidents-table">
             <thead>
               <tr>
-                <th>Status</th>
-                <th>Service</th>
-                <th>Started</th>
-                <th>Resolved</th>
-                <th>Duration</th>
+                <th><i class="fas fa-circle"></i> Status</th>
+                <th><i class="fas fa-server"></i> Service</th>
+                <th><i class="fas fa-play"></i> Started</th>
+                <th><i class="fas fa-stop"></i> Resolved</th>
+                <th><i class="fas fa-clock"></i> Duration</th>
               </tr>
             </thead>
             <tbody>
               <% incidents.forEach(incident => { 
                 const service = incident.serviceId;
               %>
-                <tr>
+                <tr class="incident-row <%= incident.resolvedAt ? 'resolved' : 'active' %>">
                   <td>
-                    <span class="badge <%= incident.resolvedAt ? 'badge-resolved' : 'badge-down' %>">
+                    <span class="status-badge <%= incident.resolvedAt ? 'status-up' : 'status-down' %>">
+                      <i class="fas <%= incident.resolvedAt ? 'fa-check-circle' : 'fa-exclamation-circle' %>"></i>
                       <%= incident.resolvedAt ? 'Resolved' : 'Active' %>
                     </span>
                   </td>
-                  <td><strong><%= service ? service.name : 'Unknown' %></strong></td>
-                  <td><%= incident.startedAt.toLocaleString() %></td>
-                  <td><%= incident.resolvedAt ? incident.resolvedAt.toLocaleString() : '-' %></td>
+                  <td>
+                    <div class="service-name-cell">
+                      <i class="fas fa-server service-type-icon"></i>
+                      <strong><%= service ? service.name : 'Unknown' %></strong>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="datetime">
+                      <i class="far fa-clock"></i>
+                      <%= incident.startedAt.toLocaleString() %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if (incident.resolvedAt) { %>
+                      <span class="datetime">
+                        <i class="far fa-clock"></i>
+                        <%= incident.resolvedAt.toLocaleString() %>
+                      </span>
+                    <% } else { %>
+                      <span class="text-muted"><i class="fas fa-minus"></i> -</span>
+                    <% } %>
+                  </td>
                   <td>
                     <% if (incident.resolvedAt) { %>
                       <% 
@@ -63,9 +112,15 @@
                         const minutes = Math.floor(duration / 60000);
                         const hours = Math.floor(minutes / 60);
                       %>
-                      <%= hours > 0 ? hours + 'h ' : '' %><%= minutes % 60 %>m
+                      <span class="duration-badge">
+                        <i class="fas fa-hourglass-half"></i>
+                        <%= hours > 0 ? hours + 'h ' : '' %><%= minutes % 60 %>m
+                      </span>
                     <% } else { %>
-                      <span class="text-danger">Ongoing</span>
+                      <span class="duration-badge active">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Ongoing
+                      </span>
                     <% } %>
                   </td>
                 </tr>

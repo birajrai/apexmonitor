@@ -4,59 +4,122 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> - ApexMonitor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="/style.css">
 </head>
 <body class="login-page">
-  <div class="login-card">
-    <div class="login-logo">
-      <h1><span>Apex</span>Monitor</h1>
-    </div>
-
-    <% if (error) { %>
-      <div class="alert alert-error"><%= error %></div>
-    <% } %>
-
-    <% if (setupNeeded) { %>
-      <div class="setup-note">
-        No admin account exists. Create the first admin account below.
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="logo-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h1><span>Apex</span>Monitor</h1>
+        <p class="login-subtitle">System Monitoring Dashboard</p>
       </div>
 
-      <form action="/auth/setup" method="POST">
-        <div class="form-group">
-          <label for="setup-username">Username</label>
-          <input type="text" id="setup-username" name="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="Enter username">
+      <% if (error) { %>
+        <div class="alert alert-error">
+          <i class="fas fa-exclamation-circle"></i>
+          <span><%= error %></span>
+        </div>
+      <% } %>
+
+      <% if (setupNeeded) { %>
+        <div class="setup-note">
+          <i class="fas fa-user-plus"></i>
+          <div>
+            <strong>Welcome!</strong>
+            <span>No admin account exists. Create the first admin account below.</span>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="setup-password">Password</label>
-          <input type="password" id="setup-password" name="password" required minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters">
-        </div>
+        <form action="/auth/setup" method="POST" class="login-form">
+          <div class="form-group">
+            <label for="setup-username">
+              <i class="fas fa-user"></i> Username
+            </label>
+            <div class="input-with-icon">
+              <i class="fas fa-user input-icon"></i>
+              <input type="text" id="setup-username" name="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="Choose a username">
+            </div>
+          </div>
 
-        <div class="form-group">
-          <label for="setup-confirm">Confirm Password</label>
-          <input type="password" id="setup-confirm" name="confirmPassword" required minlength="8" autocomplete="new-password" placeholder="Confirm your password">
-        </div>
+          <div class="form-group">
+            <label for="setup-email">
+              <i class="fas fa-envelope"></i> Email (for Gravatar)
+            </label>
+            <div class="input-with-icon">
+              <i class="fas fa-envelope input-icon"></i>
+              <input type="email" id="setup-email" name="email" autocomplete="email" placeholder="your@email.com (optional)">
+            </div>
+            <small class="form-help">Used for your profile avatar via Gravatar</small>
+          </div>
 
-        <button type="submit" class="btn btn-primary btn-block">Create Admin Account</button>
-      </form>
-    <% } else { %>
-      <form action="/auth/login" method="POST">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" name="username" required autocomplete="username" placeholder="Enter username">
-        </div>
+          <div class="form-group">
+            <label for="setup-password">
+              <i class="fas fa-lock"></i> Password
+            </label>
+            <div class="input-with-icon">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="setup-password" name="password" required minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters">
+            </div>
+          </div>
 
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter password">
-        </div>
+          <div class="form-group">
+            <label for="setup-confirm">
+              <i class="fas fa-check-double"></i> Confirm Password
+            </label>
+            <div class="input-with-icon">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="setup-confirm" name="confirmPassword" required minlength="8" autocomplete="new-password" placeholder="Confirm your password">
+            </div>
+          </div>
 
-        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-      </form>
-    <% } %>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">
+            <i class="fas fa-user-plus"></i>
+            <span>Create Admin Account</span>
+          </button>
+        </form>
+      <% } else { %>
+        <form action="/auth/login" method="POST" class="login-form">
+          <div class="form-group">
+            <label for="username">
+              <i class="fas fa-user"></i> Username
+            </label>
+            <div class="input-with-icon">
+              <i class="fas fa-user input-icon"></i>
+              <input type="text" id="username" name="username" required autocomplete="username" placeholder="Enter username">
+            </div>
+          </div>
 
-    <div class="back-link">
-      <a href="/">← Back to Status Page</a>
+          <div class="form-group">
+            <label for="password">
+              <i class="fas fa-lock"></i> Password
+            </label>
+            <div class="input-with-icon">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Enter password">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Sign In</span>
+          </button>
+        </form>
+      <% } %>
+
+      <div class="back-link">
+        <a href="/">
+          <i class="fas fa-arrow-left"></i>
+          Back to Status Page
+        </a>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      <p>Powered by <a href="https://github.com/apexmonitor/apexmonitor" target="_blank">ApexMonitor</a></p>
     </div>
   </div>
 </body>

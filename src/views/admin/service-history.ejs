@@ -4,77 +4,150 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> - ApexMonitor Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <nav class="navbar">
     <div class="navbar-inner">
-      <a href="/admin" class="navbar-brand"><span>Apex</span>Monitor</a>
+      <a href="/admin" class="navbar-brand">
+        <i class="fas fa-chart-line"></i>
+        <span>Apex</span>Monitor
+      </a>
       <div class="navbar-nav">
-        <a href="/admin">Dashboard</a>
-        <a href="/admin/incidents">Incidents</a>
-        <a href="/admin/settings">Settings</a>
-        <a href="/" target="_blank">Status Page</a>
-        <a href="/auth/logout">Logout</a>
+        <a href="/admin" class="nav-link">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="/admin/incidents" class="nav-link">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Incidents</span>
+        </a>
+        <a href="/admin/settings" class="nav-link">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+        <a href="/" target="_blank" class="nav-link">
+          <i class="fas fa-external-link-alt"></i>
+          <span>Status Page</span>
+        </a>
+        <div class="nav-divider"></div>
+        <a href="/auth/logout" class="nav-link nav-link-danger">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
       </div>
+      <button class="navbar-toggle" id="navbarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
   </nav>
 
   <div class="container admin-content">
     <div class="page-header">
-      <h1><%= service.name %> - History</h1>
-      <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
+      <div class="page-header-left">
+        <h1>
+          <i class="fas fa-history"></i>
+          <%= service.name %>
+        </h1>
+        <p class="page-subtitle">Service history and statistics</p>
+      </div>
+      <a href="/admin" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Dashboard</span>
+      </a>
     </div>
 
-    <div class="card mb-6">
-      <div class="info-grid">
-        <div class="info-item">
-          <label>Group</label>
-          <span><%= service.group %></span>
+    <!-- Service Info Cards -->
+    <div class="info-cards-grid">
+      <div class="info-card">
+        <div class="info-card-icon">
+          <i class="fas fa-folder"></i>
         </div>
-        <div class="info-item">
-          <label>Monitor Type</label>
-          <span><%= service.monitorType.toUpperCase() %></span>
+        <div class="info-card-content">
+          <span class="info-card-label">Group</span>
+          <span class="info-card-value"><%= service.group %></span>
         </div>
-        <div class="info-item">
-          <label>Status</label>
-          <span><%= service.isActive ? 'Active' : 'Inactive' %></span>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">
+          <i class="fas fa-plug"></i>
         </div>
-        <div class="info-item">
-          <label>Status Page</label>
-          <span><%= service.showOnStatusPage ? 'Visible' : 'Hidden' %></span>
+        <div class="info-card-content">
+          <span class="info-card-label">Monitor Type</span>
+          <span class="info-card-value"><%= service.monitorType.toUpperCase() %></span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon <%= service.isActive ? 'icon-success' : 'icon-warning' %>">
+          <i class="fas <%= service.isActive ? 'fa-play-circle' : 'fa-pause-circle' %>"></i>
+        </div>
+        <div class="info-card-content">
+          <span class="info-card-label">Status</span>
+          <span class="info-card-value"><%= service.isActive ? 'Active' : 'Inactive' %></span>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon">
+          <i class="fas <%= service.showOnStatusPage ? 'fa-eye' : 'fa-eye-slash' %>"></i>
+        </div>
+        <div class="info-card-content">
+          <span class="info-card-label">Status Page</span>
+          <span class="info-card-value"><%= service.showOnStatusPage ? 'Visible' : 'Hidden' %></span>
         </div>
       </div>
     </div>
 
+    <!-- Incidents Section -->
     <div class="card mb-6">
-      <div class="card-header">Recent Incidents (<%= incidents.length %>)</div>
+      <div class="card-header">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Recent Incidents (<%= incidents.length %>)</span>
+      </div>
       <% if (incidents.length === 0) { %>
         <div class="empty-state">
-          <div class="empty-state-icon">✓</div>
-          <p>No incidents recorded</p>
+          <div class="empty-state-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>No Incidents</h3>
+          <p>This service has no recorded incidents</p>
         </div>
       <% } else { %>
         <div class="table-wrapper">
           <table>
             <thead>
               <tr>
-                <th>Status</th>
-                <th>Started</th>
-                <th>Resolved</th>
-                <th>Duration</th>
+                <th><i class="fas fa-circle"></i> Status</th>
+                <th><i class="fas fa-play"></i> Started</th>
+                <th><i class="fas fa-stop"></i> Resolved</th>
+                <th><i class="fas fa-clock"></i> Duration</th>
               </tr>
             </thead>
             <tbody>
               <% incidents.forEach(incident => { %>
-                <tr>
+                <tr class="incident-row <%= incident.resolvedAt ? 'resolved' : 'active' %>">
                   <td>
-                    <span class="badge <%= incident.resolvedAt ? 'badge-up' : 'badge-down' %>">
+                    <span class="status-badge <%= incident.resolvedAt ? 'status-up' : 'status-down' %>">
+                      <i class="fas <%= incident.resolvedAt ? 'fa-check-circle' : 'fa-exclamation-circle' %>"></i>
                       <%= incident.resolvedAt ? 'Resolved' : 'Active' %>
                     </span>
                   </td>
-                  <td><%= incident.startedAt.toLocaleString() %></td>
-                  <td><%= incident.resolvedAt ? incident.resolvedAt.toLocaleString() : '-' %></td>
+                  <td>
+                    <span class="datetime">
+                      <i class="far fa-clock"></i>
+                      <%= incident.startedAt.toLocaleString() %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if (incident.resolvedAt) { %>
+                      <span class="datetime">
+                        <i class="far fa-clock"></i>
+                        <%= incident.resolvedAt.toLocaleString() %>
+                      </span>
+                    <% } else { %>
+                      <span class="text-muted"><i class="fas fa-minus"></i> -</span>
+                    <% } %>
+                  </td>
                   <td>
                     <% if (incident.resolvedAt) { %>
                       <% 
@@ -82,9 +155,15 @@
                         const minutes = Math.floor(duration / 60000);
                         const hours = Math.floor(minutes / 60);
                       %>
-                      <%= hours > 0 ? hours + 'h ' : '' %><%= minutes % 60 %>m
+                      <span class="duration-badge">
+                        <i class="fas fa-hourglass-half"></i>
+                        <%= hours > 0 ? hours + 'h ' : '' %><%= minutes % 60 %>m
+                      </span>
                     <% } else { %>
-                      <span class="text-danger">Ongoing</span>
+                      <span class="duration-badge active">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Ongoing
+                      </span>
                     <% } %>
                   </td>
                 </tr>
@@ -95,39 +174,60 @@
       <% } %>
     </div>
 
+    <!-- Checks Section -->
     <div class="card">
-      <div class="card-header">Recent Checks (<%= checks.length %>)</div>
+      <div class="card-header">
+        <i class="fas fa-clipboard-check"></i>
+        <span>Recent Checks (<%= checks.length %>)</span>
+      </div>
       <% if (checks.length === 0) { %>
         <div class="empty-state">
-          <div class="empty-state-icon">📊</div>
-          <p>No checks recorded yet</p>
+          <div class="empty-state-icon">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <h3>No Checks Yet</h3>
+          <p>No health checks have been recorded for this service</p>
         </div>
       <% } else { %>
         <div class="table-wrapper">
-          <table>
+          <table class="checks-table">
             <thead>
               <tr>
-                <th>Status</th>
-                <th>Response Time</th>
-                <th>Checked At</th>
-                <th>Error</th>
+                <th><i class="fas fa-circle"></i> Status</th>
+                <th><i class="fas fa-bolt"></i> Response Time</th>
+                <th><i class="far fa-clock"></i> Checked At</th>
+                <th><i class="fas fa-exclamation-circle"></i> Error</th>
               </tr>
             </thead>
             <tbody>
               <% checks.forEach(check => { %>
-                <tr>
+                <tr class="check-row">
                   <td>
-                    <span class="badge badge-<%= check.status.toLowerCase() %>">
+                    <span class="status-badge status-<%= check.status.toLowerCase() %>">
+                      <i class="fas <%= check.status === 'UP' ? 'fa-check-circle' : 'fa-times-circle' %>"></i>
                       <%= check.status %>
                     </span>
                   </td>
-                  <td><%= check.responseTimeMs %>ms</td>
-                  <td><%= check.checkedAt.toLocaleString() %></td>
+                  <td>
+                    <span class="response-time <%= check.responseTimeMs < 200 ? 'fast' : (check.responseTimeMs < 500 ? 'medium' : 'slow') %>">
+                      <i class="fas fa-bolt"></i>
+                      <%= check.responseTimeMs %>ms
+                    </span>
+                  </td>
+                  <td>
+                    <span class="datetime">
+                      <i class="far fa-clock"></i>
+                      <%= check.checkedAt.toLocaleString() %>
+                    </span>
+                  </td>
                   <td>
                     <% if (check.error) { %>
-                      <span class="error-text" title="<%= check.error %>"><%= check.error %></span>
+                      <span class="error-text" title="<%= check.error %>">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <%= check.error %>
+                      </span>
                     <% } else { %>
-                      -
+                      <span class="text-muted"><i class="fas fa-minus"></i> -</span>
                     <% } %>
                   </td>
                 </tr>

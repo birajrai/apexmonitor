@@ -1,65 +1,102 @@
 <%- include('layout', { body: `
   <div class="page-header">
-    <h1>Services</h1>
+    <div class="page-header-left">
+      <h1><i class="fas fa-server"></i> Services</h1>
+      <p class="page-subtitle">Manage and monitor your services</p>
+    </div>
     <div class="page-header-actions">
-      <div class="scheduler-status ${schedulerStatus.isRunning ? '' : 'stopped'}">
-        <span>${schedulerStatus.isRunning ? '●' : '○'}</span>
-        Scheduler: ${schedulerStatus.isRunning ? 'Running' : 'Stopped'}
-        ${schedulerStatus.checkInProgress ? ' (checking...)' : ''}
+      <div class="scheduler-status ${schedulerStatus.isRunning ? 'running' : 'stopped'}">
+        <i class="fas ${schedulerStatus.isRunning ? 'fa-play-circle' : 'fa-stop-circle'}"></i>
+        <span>Scheduler: ${schedulerStatus.isRunning ? 'Running' : 'Stopped'}</span>
+        ${schedulerStatus.checkInProgress ? '<span class="checking-badge"><i class="fas fa-sync fa-spin"></i> Checking...</span>' : ''}
       </div>
-      <a href="/admin/services/new" class="btn btn-primary">+ Add Service</a>
+      <a href="/admin/services/new" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        <span>Add Service</span>
+      </a>
     </div>
   </div>
 
-  <div class="card">
-    ${services.length === 0 ? `
+  ${services.length === 0 ? `
+    <div class="card">
       <div class="empty-state">
-        <div class="empty-state-icon">📊</div>
-        <p>No services configured yet.</p>
-        <a href="/admin/services/new" class="btn btn-primary">Add Your First Service</a>
+        <div class="empty-state-icon">
+          <i class="fas fa-server"></i>
+        </div>
+        <h3>No services configured</h3>
+        <p>Start monitoring by adding your first service</p>
+        <a href="/admin/services/new" class="btn btn-primary">
+          <i class="fas fa-plus"></i>
+          <span>Add Your First Service</span>
+        </a>
       </div>
-    ` : `
+    </div>
+  ` : `
+    <div class="card">
       <div class="table-wrapper">
-        <table>
+        <table class="services-table">
           <thead>
             <tr>
-              <th>Status</th>
-              <th>Name</th>
-              <th>Group</th>
-              <th>Type</th>
-              <th>Response Time</th>
-              <th>Active</th>
-              <th>Visible</th>
-              <th>Actions</th>
+              <th><i class="fas fa-circle"></i> Status</th>
+              <th><i class="fas fa-tag"></i> Name</th>
+              <th><i class="fas fa-folder"></i> Group</th>
+              <th><i class="fas fa-plug"></i> Type</th>
+              <th><i class="fas fa-clock"></i> Response</th>
+              <th><i class="fas fa-toggle-on"></i> Active</th>
+              <th><i class="fas fa-eye"></i> Visible</th>
+              <th><i class="fas fa-cogs"></i> Actions</th>
             </tr>
           </thead>
           <tbody>
             ${services.map(service => `
-              <tr>
+              <tr class="service-row ${service.hasActiveIncident ? 'has-incident' : ''}">
                 <td>
-                  <span class="badge ${service.hasActiveIncident ? 'badge-down' : (service.latestCheck ? 'badge-' + service.latestCheck.status.toLowerCase() : 'badge-unknown')}">
+                  <span class="status-badge ${service.hasActiveIncident ? 'status-down' : (service.latestCheck ? 'status-' + service.latestCheck.status.toLowerCase() : 'status-unknown')}">
+                    <i class="fas ${service.hasActiveIncident ? 'fa-times-circle' : (service.latestCheck ? (service.latestCheck.status === 'UP' ? 'fa-check-circle' : 'fa-times-circle') : 'fa-question-circle')}"></i>
                     ${service.hasActiveIncident ? 'DOWN' : (service.latestCheck ? service.latestCheck.status : 'Unknown')}
                   </span>
                 </td>
-                <td><strong>${service.name}</strong></td>
-                <td>${service.group}</td>
-                <td>${service.monitorType.toUpperCase()}</td>
-                <td>${service.latestCheck ? service.latestCheck.responseTimeMs + 'ms' : '-'}</td>
                 <td>
-                  <span class="badge ${service.isActive ? 'badge-active' : 'badge-inactive'}">
+                  <div class="service-name-cell">
+                    <i class="fas ${service.monitorType === 'http' ? 'fa-globe' : (service.monitorType === 'ping' ? 'fa-network-wired' : 'fa-server')} service-type-icon"></i>
+                    <strong>${service.name}</strong>
+                  </div>
+                </td>
+                <td><span class="group-badge">${service.group}</span></td>
+                <td><span class="type-badge type-${service.monitorType}">${service.monitorType.toUpperCase()}</span></td>
+                <td>
+                  <span class="response-time ${service.latestCheck ? (service.latestCheck.responseTimeMs < 200 ? 'fast' : (service.latestCheck.responseTimeMs < 500 ? 'medium' : 'slow')) : ''}">
+                    ${service.latestCheck ? '<i class="fas fa-bolt"></i> ' + service.latestCheck.responseTimeMs + 'ms' : '<i class="fas fa-minus"></i> -'}
+                  </span>
+                </td>
+                <td>
+                  <span class="toggle-badge ${service.isActive ? 'toggle-on' : 'toggle-off'}">
+                    <i class="fas ${service.isActive ? 'fa-check' : 'fa-times'}"></i>
                     ${service.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td>${service.showOnStatusPage ? 'Yes' : 'No'}</td>
+                <td>
+                  <span class="visibility-badge ${service.showOnStatusPage ? 'visible' : 'hidden'}">
+                    <i class="fas ${service.showOnStatusPage ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                  </span>
+                </td>
                 <td>
                   <div class="table-actions">
-                    <a href="/admin/services/${service._id}/history" class="btn btn-secondary btn-sm">History</a>
-                    <a href="/admin/services/${service._id}/edit" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="/admin/services/${service._id}/history" class="btn btn-icon btn-ghost" title="View History">
+                      <i class="fas fa-history"></i>
+                    </a>
+                    <a href="/admin/services/${service._id}/edit" class="btn btn-icon btn-ghost" title="Edit Service">
+                      <i class="fas fa-edit"></i>
+                    </a>
                     <form action="/admin/services/${service._id}/check" method="POST" style="display: inline;">
-                      <button type="submit" class="btn btn-secondary btn-sm">Check Now</button>
+                      <button type="submit" class="btn btn-icon btn-ghost" title="Check Now">
+                        <i class="fas fa-sync-alt"></i>
+                      </button>
                     </form>
                     <form action="/admin/services/${service._id}/delete" method="POST" style="display: inline;" data-confirm="Are you sure you want to delete this service? All checks and incidents will be deleted.">
-                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                      <button type="submit" class="btn btn-icon btn-ghost btn-danger-hover" title="Delete Service">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
                     </form>
                   </div>
                 </td>
@@ -68,6 +105,45 @@
           </tbody>
         </table>
       </div>
-    `}
-  </div>
-`, title, username }) %>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-primary">
+          <i class="fas fa-server"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">${services.length}</span>
+          <span class="stat-label">Total Services</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-success">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">${services.filter(s => s.latestCheck && s.latestCheck.status === 'UP' && !s.hasActiveIncident).length}</span>
+          <span class="stat-label">Services Up</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-danger">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">${services.filter(s => s.hasActiveIncident).length}</span>
+          <span class="stat-label">Active Incidents</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-warning">
+          <i class="fas fa-pause-circle"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">${services.filter(s => !s.isActive).length}</span>
+          <span class="stat-label">Paused Services</span>
+        </div>
+      </div>
+    </div>
+  `}
+`, title, username, gravatarHash: typeof gravatarHash !== 'undefined' ? gravatarHash : '', activePage: 'dashboard' }) %>

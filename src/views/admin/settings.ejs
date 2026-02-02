@@ -1,152 +1,302 @@
 <%- include('layout', { body: `
   <div class="page-header">
-    <h1>Settings</h1>
-  </div>
-
-  ${success ? '<div class="alert alert-success">' + success + '</div>' : ''}
-  ${error ? '<div class="alert alert-error">' + error + '</div>' : ''}
-
-  <div class="container-md">
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="notifications">Notifications</button>
-      <button class="tab-btn" data-tab="account">Account</button>
-      <button class="tab-btn" data-tab="general">General</button>
-    </div>
-
-    <!-- Notifications Tab -->
-    <div class="tab-content active" id="notifications">
-      <div class="card">
-        <div class="card-header">Discord Notifications</div>
-        <div class="card-body">
-          <form action="/admin/settings/notifications" method="POST">
-            <div class="form-group">
-              <div class="checkbox-group">
-                <input type="checkbox" id="discordEnabled" name="discordEnabled" ${settings.discord_enabled === 'true' ? 'checked' : ''}>
-                <label for="discordEnabled">Enable Discord notifications</label>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="discordWebhookUrl">Discord Webhook URL</label>
-              <input type="url" id="discordWebhookUrl" name="discordWebhookUrl" 
-                     value="${settings.discord_webhook_url || ''}" 
-                     placeholder="https://discord.com/api/webhooks/...">
-              <small class="form-help">Get this from Discord: Server Settings → Integrations → Webhooks</small>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Save Notification Settings</button>
-              <button type="button" class="btn btn-secondary" id="testDiscord">Test Notification</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Account Tab -->
-    <div class="tab-content" id="account">
-      <div class="card mb-6">
-        <div class="card-header">Update Username</div>
-        <div class="card-body">
-          <form action="/admin/settings/account/username" method="POST">
-            <div class="form-group">
-              <label for="currentUsername">Current Username</label>
-              <input type="text" id="currentUsername" value="${username}" disabled>
-            </div>
-            
-            <div class="form-group">
-              <label for="newUsername">New Username</label>
-              <input type="text" id="newUsername" name="newUsername" 
-                     placeholder="Enter new username" minlength="3" maxlength="50" required>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Update Username</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">Change Password</div>
-        <div class="card-body">
-          <form action="/admin/settings/account/password" method="POST">
-            <div class="form-group">
-              <label for="currentPassword">Current Password</label>
-              <input type="password" id="currentPassword" name="currentPassword" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="newPassword">New Password</label>
-              <input type="password" id="newPassword" name="newPassword" 
-                     placeholder="Minimum 8 characters" minlength="8" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="confirmPassword">Confirm New Password</label>
-              <input type="password" id="confirmPassword" name="confirmPassword" required>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Change Password</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- General Tab -->
-    <div class="tab-content" id="general">
-      <div class="card">
-        <div class="card-header">General Settings</div>
-        <div class="card-body">
-          <form action="/admin/settings/general" method="POST">
-            <div class="form-group">
-              <label for="siteName">Site Name</label>
-              <input type="text" id="siteName" name="siteName" 
-                     value="${settings.site_name || 'ApexMonitor'}" 
-                     placeholder="ApexMonitor">
-              <small class="form-help">Displayed on the status page header</small>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="checkRetentionDays">Data Retention (days)</label>
-                <input type="number" id="checkRetentionDays" name="checkRetentionDays" 
-                       value="${settings.check_retention_days || '30'}" min="1" max="365">
-                <small class="form-help">How long to keep check history</small>
-              </div>
-
-              <div class="form-group">
-                <label for="schedulerIntervalSeconds">Check Interval (seconds)</label>
-                <input type="number" id="schedulerIntervalSeconds" name="schedulerIntervalSeconds" 
-                       value="${settings.scheduler_interval_seconds || '60'}" min="30" max="3600">
-                <small class="form-help">How often to run health checks</small>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="consecutiveFailuresThreshold">Failures Before Down</label>
-                <input type="number" id="consecutiveFailuresThreshold" name="consecutiveFailuresThreshold" 
-                       value="${settings.consecutive_failures_threshold || '3'}" min="1" max="10">
-                <small class="form-help">Consecutive failures to trigger incident</small>
-              </div>
-
-              <div class="form-group">
-                <label for="incidentCooldownMinutes">Notification Cooldown (minutes)</label>
-                <input type="number" id="incidentCooldownMinutes" name="incidentCooldownMinutes" 
-                       value="${settings.incident_cooldown_minutes || '10'}" min="1" max="60">
-                <small class="form-help">Min time between notifications</small>
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Save General Settings</button>
-            </div>
-          </form>
-        </div>
-      </div>
+    <div class="page-header-left">
+      <h1><i class="fas fa-cog"></i> Settings</h1>
+      <p class="page-subtitle">Configure your monitoring preferences</p>
     </div>
   </div>
-`, title, username }) %>
+
+  ${success ? '<div class="alert alert-success"><i class="fas fa-check-circle"></i> ' + success + '</div>' : ''}
+  ${error ? '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> ' + error + '</div>' : ''}
+
+  <div class="settings-layout">
+    <div class="settings-sidebar">
+      <nav class="settings-nav">
+        <button class="settings-nav-item active" data-tab="notifications">
+          <i class="fab fa-discord"></i>
+          <span>Notifications</span>
+        </button>
+        <button class="settings-nav-item" data-tab="account">
+          <i class="fas fa-user-circle"></i>
+          <span>Account</span>
+        </button>
+        <button class="settings-nav-item" data-tab="general">
+          <i class="fas fa-sliders-h"></i>
+          <span>General</span>
+        </button>
+      </nav>
+    </div>
+
+    <div class="settings-content">
+      <!-- Notifications Tab -->
+      <div class="tab-content active" id="notifications">
+        <div class="card">
+          <div class="card-header">
+            <i class="fab fa-discord"></i>
+            <span>Discord Notifications</span>
+          </div>
+          <div class="card-body">
+            <form action="/admin/settings/notifications" method="POST">
+              <div class="form-group">
+                <div class="toggle-switch-group">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="discordEnabled" name="discordEnabled" ${settings.discord_enabled === 'true' ? 'checked' : ''}>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <label for="discordEnabled" class="toggle-label">
+                    <strong>Enable Discord notifications</strong>
+                    <small>Receive alerts when services go down or recover</small>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="discordWebhookUrl">
+                  <i class="fas fa-link"></i> Webhook URL
+                </label>
+                <div class="input-with-icon">
+                  <i class="fab fa-discord input-icon"></i>
+                  <input type="url" id="discordWebhookUrl" name="discordWebhookUrl" 
+                         value="${settings.discord_webhook_url || ''}" 
+                         placeholder="https://discord.com/api/webhooks/...">
+                </div>
+                <small class="form-help">
+                  <i class="fas fa-info-circle"></i>
+                  Get this from Discord: Server Settings → Integrations → Webhooks
+                </small>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i>
+                  <span>Save Settings</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="testDiscord">
+                  <i class="fas fa-paper-plane"></i>
+                  <span>Test Notification</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Tab -->
+      <div class="tab-content" id="account">
+        <div class="card mb-6">
+          <div class="card-header">
+            <i class="fas fa-user"></i>
+            <span>Profile Information</span>
+          </div>
+          <div class="card-body">
+            <div class="profile-header">
+              <img src="https://www.gravatar.com/avatar/${typeof gravatarHash !== 'undefined' ? gravatarHash : '00000000000000000000000000000000'}?s=120&d=identicon" alt="Avatar" class="profile-avatar">
+              <div class="profile-info">
+                <h3>${username}</h3>
+                <span class="profile-role"><i class="fas fa-shield-alt"></i> Administrator</span>
+                <a href="https://gravatar.com" target="_blank" class="btn btn-sm btn-secondary mt-2">
+                  <i class="fas fa-external-link-alt"></i>
+                  <span>Change Avatar on Gravatar</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-6">
+          <div class="card-header">
+            <i class="fas fa-user-edit"></i>
+            <span>Update Username</span>
+          </div>
+          <div class="card-body">
+            <form action="/admin/settings/account/username" method="POST">
+              <div class="form-group">
+                <label for="currentUsername">
+                  <i class="fas fa-user"></i> Current Username
+                </label>
+                <input type="text" id="currentUsername" value="${username}" disabled>
+              </div>
+              
+              <div class="form-group">
+                <label for="newUsername">
+                  <i class="fas fa-user-plus"></i> New Username
+                </label>
+                <input type="text" id="newUsername" name="newUsername" 
+                       placeholder="Enter new username" minlength="3" maxlength="50" required>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i>
+                  <span>Update Username</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card mb-6">
+          <div class="card-header">
+            <i class="fas fa-envelope"></i>
+            <span>Email Address</span>
+          </div>
+          <div class="card-body">
+            <form action="/admin/settings/account/email" method="POST">
+              <div class="form-group">
+                <label for="email">
+                  <i class="fas fa-envelope"></i> Email (for Gravatar)
+                </label>
+                <div class="input-with-icon">
+                  <i class="fas fa-envelope input-icon"></i>
+                  <input type="email" id="email" name="email" 
+                         value="${typeof email !== 'undefined' && email ? email : ''}" 
+                         placeholder="your@email.com">
+                </div>
+                <small class="form-help">
+                  <i class="fas fa-info-circle"></i>
+                  Your avatar is loaded from <a href="https://gravatar.com" target="_blank">Gravatar</a> based on this email
+                </small>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i>
+                  <span>Update Email</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <i class="fas fa-lock"></i>
+            <span>Change Password</span>
+          </div>
+          <div class="card-body">
+            <form action="/admin/settings/account/password" method="POST">
+              <div class="form-group">
+                <label for="currentPassword">
+                  <i class="fas fa-key"></i> Current Password
+                </label>
+                <div class="input-with-icon">
+                  <i class="fas fa-lock input-icon"></i>
+                  <input type="password" id="currentPassword" name="currentPassword" required placeholder="Enter current password">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="newPassword">
+                  <i class="fas fa-lock"></i> New Password
+                </label>
+                <div class="input-with-icon">
+                  <i class="fas fa-lock input-icon"></i>
+                  <input type="password" id="newPassword" name="newPassword" 
+                         placeholder="Minimum 8 characters" minlength="8" required>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="confirmPassword">
+                  <i class="fas fa-check-double"></i> Confirm New Password
+                </label>
+                <div class="input-with-icon">
+                  <i class="fas fa-lock input-icon"></i>
+                  <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm new password">
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-key"></i>
+                  <span>Change Password</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- General Tab -->
+      <div class="tab-content" id="general">
+        <div class="card">
+          <div class="card-header">
+            <i class="fas fa-sliders-h"></i>
+            <span>General Settings</span>
+          </div>
+          <div class="card-body">
+            <form action="/admin/settings/general" method="POST">
+              <div class="form-group">
+                <label for="siteName">
+                  <i class="fas fa-heading"></i> Site Name
+                </label>
+                <input type="text" id="siteName" name="siteName" 
+                       value="${settings.site_name || 'ApexMonitor'}" 
+                       placeholder="ApexMonitor">
+                <small class="form-help">
+                  <i class="fas fa-info-circle"></i>
+                  Displayed on the status page header
+                </small>
+              </div>
+
+              <div class="form-section-title">
+                <i class="fas fa-clock"></i> Monitoring Schedule
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="schedulerIntervalSeconds">
+                    <i class="fas fa-stopwatch"></i> Check Interval (seconds)
+                  </label>
+                  <input type="number" id="schedulerIntervalSeconds" name="schedulerIntervalSeconds" 
+                         value="${settings.scheduler_interval_seconds || '60'}" min="30" max="3600">
+                  <small class="form-help">How often to run health checks</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="consecutiveFailuresThreshold">
+                    <i class="fas fa-exclamation-triangle"></i> Failures Before Down
+                  </label>
+                  <input type="number" id="consecutiveFailuresThreshold" name="consecutiveFailuresThreshold" 
+                         value="${settings.consecutive_failures_threshold || '3'}" min="1" max="10">
+                  <small class="form-help">Consecutive failures to trigger incident</small>
+                </div>
+              </div>
+
+              <div class="form-section-title">
+                <i class="fas fa-database"></i> Data Management
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="checkRetentionDays">
+                    <i class="fas fa-calendar-alt"></i> Data Retention (days)
+                  </label>
+                  <input type="number" id="checkRetentionDays" name="checkRetentionDays" 
+                         value="${settings.check_retention_days || '30'}" min="1" max="365">
+                  <small class="form-help">How long to keep check history</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="incidentCooldownMinutes">
+                    <i class="fas fa-hourglass-half"></i> Notification Cooldown (minutes)
+                  </label>
+                  <input type="number" id="incidentCooldownMinutes" name="incidentCooldownMinutes" 
+                         value="${settings.incident_cooldown_minutes || '10'}" min="1" max="60">
+                  <small class="form-help">Min time between notifications</small>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i>
+                  <span>Save General Settings</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+`, title, username, gravatarHash: typeof gravatarHash !== 'undefined' ? gravatarHash : '', activePage: 'settings' }) %>

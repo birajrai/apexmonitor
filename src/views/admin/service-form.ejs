@@ -4,134 +4,225 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> - ApexMonitor Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <nav class="navbar">
     <div class="navbar-inner">
-      <a href="/admin" class="navbar-brand"><span>Apex</span>Monitor</a>
+      <a href="/admin" class="navbar-brand">
+        <i class="fas fa-chart-line"></i>
+        <span>Apex</span>Monitor
+      </a>
       <div class="navbar-nav">
-        <a href="/admin">Dashboard</a>
-        <a href="/admin/incidents">Incidents</a>
-        <a href="/admin/settings">Settings</a>
-        <a href="/" target="_blank">Status Page</a>
-        <a href="/auth/logout">Logout</a>
+        <a href="/admin" class="nav-link">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="/admin/incidents" class="nav-link">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Incidents</span>
+        </a>
+        <a href="/admin/settings" class="nav-link">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+        <a href="/" target="_blank" class="nav-link">
+          <i class="fas fa-external-link-alt"></i>
+          <span>Status Page</span>
+        </a>
+        <div class="nav-divider"></div>
+        <a href="/auth/logout" class="nav-link nav-link-danger">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
       </div>
+      <button class="navbar-toggle" id="navbarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
   </nav>
 
   <div class="container container-md admin-content">
     <div class="page-header">
-      <h1><%= title %></h1>
+      <div class="page-header-left">
+        <h1>
+          <i class="fas <%= service && service._id ? 'fa-edit' : 'fa-plus-circle' %>"></i>
+          <%= title %>
+        </h1>
+        <p class="page-subtitle"><%= service && service._id ? 'Modify service configuration' : 'Configure a new service to monitor' %></p>
+      </div>
     </div>
 
     <% if (error) { %>
-      <div class="alert alert-error"><%= error %></div>
+      <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        <%= error %>
+      </div>
     <% } %>
 
     <div class="card">
       <div class="card-body">
         <form action="<%= service && service._id ? '/admin/services/' + service._id : '/admin/services' %>" method="POST">
-          <div class="form-group">
-            <label for="name">Service Name *</label>
-            <input type="text" id="name" name="name" required maxlength="100" 
-              value="<%= service ? service.name : '' %>" 
-              placeholder="e.g., API Server">
-          </div>
-
-          <div class="form-row">
+          
+          <!-- Basic Information -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fas fa-info-circle"></i> Basic Information
+            </div>
+            
             <div class="form-group">
-              <label for="group">Group</label>
-              <input type="text" id="group" name="group" maxlength="50" 
-                value="<%= service ? service.group : 'Default' %>" 
-                placeholder="e.g., Backend">
+              <label for="name">
+                <i class="fas fa-tag"></i> Service Name <span class="required">*</span>
+              </label>
+              <input type="text" id="name" name="name" required maxlength="100" 
+                value="<%= service ? service.name : '' %>" 
+                placeholder="e.g., API Server">
             </div>
 
-            <div class="form-group">
-              <label for="monitorType">Monitor Type *</label>
-              <select id="monitorType" name="monitorType" required>
-                <option value="">Select type...</option>
-                <% monitorTypes.forEach(type => { %>
-                  <option value="<%= type %>" <%= service && service.monitorType === type ? 'selected' : '' %>>
-                    <%= type.toUpperCase() %>
-                  </option>
-                <% }) %>
-              </select>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="group">
+                  <i class="fas fa-folder"></i> Group
+                </label>
+                <input type="text" id="group" name="group" maxlength="50" 
+                  value="<%= service ? service.group : 'Default' %>" 
+                  placeholder="e.g., Backend">
+                <small class="form-help">Group services together on the status page</small>
+              </div>
+
+              <div class="form-group">
+                <label for="monitorType">
+                  <i class="fas fa-plug"></i> Monitor Type <span class="required">*</span>
+                </label>
+                <div class="select-wrapper">
+                  <select id="monitorType" name="monitorType" required>
+                    <option value="">Select type...</option>
+                    <% monitorTypes.forEach(type => { %>
+                      <option value="<%= type %>" <%= service && service.monitorType === type ? 'selected' : '' %>>
+                        <%= type.toUpperCase() %> - <%= type === 'http' ? 'Web & API' : (type === 'ping' ? 'Network Host' : 'DNS Records') %>
+                      </option>
+                    <% }) %>
+                  </select>
+                  <i class="fas fa-chevron-down select-icon"></i>
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- HTTP Configuration -->
           <div id="http-config" class="monitor-config">
-            <h3>HTTP Monitor Configuration</h3>
+            <div class="form-section-title">
+              <i class="fas fa-globe"></i> HTTP Monitor Configuration
+            </div>
             <div class="form-group">
-              <label for="httpUrl">URL *</label>
-              <input type="url" id="httpUrl" name="httpUrl" 
-                value="<%= service && service.monitorType === 'http' ? service.monitorConfig.url : '' %>" 
-                placeholder="https://example.com/health">
+              <label for="httpUrl">
+                <i class="fas fa-link"></i> URL <span class="required">*</span>
+              </label>
+              <div class="input-with-icon">
+                <i class="fas fa-globe input-icon"></i>
+                <input type="url" id="httpUrl" name="httpUrl" 
+                  value="<%= service && service.monitorType === 'http' ? service.monitorConfig.url : '' %>" 
+                  placeholder="https://example.com/health">
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="httpMethod">Method</label>
-                <select id="httpMethod" name="httpMethod">
-                  <option value="GET" <%= service && service.monitorConfig?.method === 'GET' ? 'selected' : '' %>>GET</option>
-                  <option value="POST" <%= service && service.monitorConfig?.method === 'POST' ? 'selected' : '' %>>POST</option>
-                  <option value="HEAD" <%= service && service.monitorConfig?.method === 'HEAD' ? 'selected' : '' %>>HEAD</option>
-                </select>
+                <label for="httpMethod">
+                  <i class="fas fa-exchange-alt"></i> Method
+                </label>
+                <div class="select-wrapper">
+                  <select id="httpMethod" name="httpMethod">
+                    <option value="GET" <%= service && service.monitorConfig?.method === 'GET' ? 'selected' : '' %>>GET</option>
+                    <option value="POST" <%= service && service.monitorConfig?.method === 'POST' ? 'selected' : '' %>>POST</option>
+                    <option value="HEAD" <%= service && service.monitorConfig?.method === 'HEAD' ? 'selected' : '' %>>HEAD</option>
+                  </select>
+                  <i class="fas fa-chevron-down select-icon"></i>
+                </div>
               </div>
               <div class="form-group">
-                <label for="httpExpectedStatus">Expected Status Code</label>
+                <label for="httpExpectedStatus">
+                  <i class="fas fa-check-double"></i> Expected Status Code
+                </label>
                 <input type="number" id="httpExpectedStatus" name="httpExpectedStatus" 
                   value="<%= service && service.monitorConfig?.expectedStatusCode ? service.monitorConfig.expectedStatusCode : 200 %>" 
                   min="100" max="599">
               </div>
             </div>
             <div class="form-group">
-              <label for="httpTimeout">Timeout (ms)</label>
+              <label for="httpTimeout">
+                <i class="fas fa-stopwatch"></i> Timeout (ms)
+              </label>
               <input type="number" id="httpTimeout" name="httpTimeout" 
                 value="<%= service && service.monitorConfig?.timeoutMs ? service.monitorConfig.timeoutMs : 30000 %>" 
                 min="1000" max="120000">
+              <small class="form-help">Maximum time to wait for a response (default: 30000ms)</small>
             </div>
           </div>
 
           <!-- Ping Configuration -->
           <div id="ping-config" class="monitor-config">
-            <h3>Ping Monitor Configuration</h3>
-            <div class="form-group">
-              <label for="pingHost">Host *</label>
-              <input type="text" id="pingHost" name="pingHost" 
-                value="<%= service && service.monitorType === 'ping' ? service.monitorConfig.host : '' %>" 
-                placeholder="example.com or 192.168.1.1">
+            <div class="form-section-title">
+              <i class="fas fa-network-wired"></i> Ping Monitor Configuration
             </div>
             <div class="form-group">
-              <label for="pingTimeout">Timeout (ms)</label>
+              <label for="pingHost">
+                <i class="fas fa-server"></i> Host <span class="required">*</span>
+              </label>
+              <div class="input-with-icon">
+                <i class="fas fa-network-wired input-icon"></i>
+                <input type="text" id="pingHost" name="pingHost" 
+                  value="<%= service && service.monitorType === 'ping' ? service.monitorConfig.host : '' %>" 
+                  placeholder="example.com or 192.168.1.1">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="pingTimeout">
+                <i class="fas fa-stopwatch"></i> Timeout (ms)
+              </label>
               <input type="number" id="pingTimeout" name="pingTimeout" 
                 value="<%= service && service.monitorConfig?.timeoutMs ? service.monitorConfig.timeoutMs : 5000 %>" 
                 min="1000" max="60000">
+              <small class="form-help">Maximum time to wait for ping response (default: 5000ms)</small>
             </div>
           </div>
 
           <!-- DNS Configuration -->
           <div id="dns-config" class="monitor-config">
-            <h3>DNS Monitor Configuration</h3>
+            <div class="form-section-title">
+              <i class="fas fa-sitemap"></i> DNS Monitor Configuration
+            </div>
             <div class="form-group">
-              <label for="dnsHostname">Hostname *</label>
-              <input type="text" id="dnsHostname" name="dnsHostname" 
-                value="<%= service && service.monitorType === 'dns' ? service.monitorConfig.hostname : '' %>" 
-                placeholder="example.com">
+              <label for="dnsHostname">
+                <i class="fas fa-at"></i> Hostname <span class="required">*</span>
+              </label>
+              <div class="input-with-icon">
+                <i class="fas fa-sitemap input-icon"></i>
+                <input type="text" id="dnsHostname" name="dnsHostname" 
+                  value="<%= service && service.monitorType === 'dns' ? service.monitorConfig.hostname : '' %>" 
+                  placeholder="example.com">
+              </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="dnsRecordType">Record Type</label>
-                <select id="dnsRecordType" name="dnsRecordType">
-                  <option value="A" <%= service && service.monitorConfig?.recordType === 'A' ? 'selected' : '' %>>A</option>
-                  <option value="AAAA" <%= service && service.monitorConfig?.recordType === 'AAAA' ? 'selected' : '' %>>AAAA</option>
-                  <option value="CNAME" <%= service && service.monitorConfig?.recordType === 'CNAME' ? 'selected' : '' %>>CNAME</option>
-                  <option value="MX" <%= service && service.monitorConfig?.recordType === 'MX' ? 'selected' : '' %>>MX</option>
-                  <option value="TXT" <%= service && service.monitorConfig?.recordType === 'TXT' ? 'selected' : '' %>>TXT</option>
-                </select>
+                <label for="dnsRecordType">
+                  <i class="fas fa-list"></i> Record Type
+                </label>
+                <div class="select-wrapper">
+                  <select id="dnsRecordType" name="dnsRecordType">
+                    <option value="A" <%= service && service.monitorConfig?.recordType === 'A' ? 'selected' : '' %>>A (IPv4)</option>
+                    <option value="AAAA" <%= service && service.monitorConfig?.recordType === 'AAAA' ? 'selected' : '' %>>AAAA (IPv6)</option>
+                    <option value="CNAME" <%= service && service.monitorConfig?.recordType === 'CNAME' ? 'selected' : '' %>>CNAME</option>
+                    <option value="MX" <%= service && service.monitorConfig?.recordType === 'MX' ? 'selected' : '' %>>MX (Mail)</option>
+                    <option value="TXT" <%= service && service.monitorConfig?.recordType === 'TXT' ? 'selected' : '' %>>TXT</option>
+                  </select>
+                  <i class="fas fa-chevron-down select-icon"></i>
+                </div>
               </div>
               <div class="form-group">
-                <label for="dnsExpectedValue">Expected Value (optional)</label>
+                <label for="dnsExpectedValue">
+                  <i class="fas fa-check"></i> Expected Value (optional)
+                </label>
                 <input type="text" id="dnsExpectedValue" name="dnsExpectedValue" 
                   value="<%= service && service.monitorConfig?.expectedValue ? service.monitorConfig.expectedValue : '' %>" 
                   placeholder="e.g., 93.184.216.34">
@@ -139,46 +230,77 @@
             </div>
           </div>
 
-          <div class="section-title">Monitoring Settings</div>
+          <!-- Monitoring Settings -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fas fa-play-circle"></i> Monitoring Settings
+            </div>
 
-          <div class="form-group">
-            <div class="checkbox-group">
-              <input type="checkbox" id="isActive" name="isActive" 
-                <%= !service || service.isActive ? 'checked' : '' %>>
-              <label for="isActive">Active (run health checks)</label>
+            <div class="form-group">
+              <div class="toggle-switch-group">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="isActive" name="isActive" 
+                    <%= !service || service.isActive ? 'checked' : '' %>>
+                  <span class="toggle-slider"></span>
+                </label>
+                <label for="isActive" class="toggle-label">
+                  <strong>Active Monitoring</strong>
+                  <small>Enable health checks for this service</small>
+                </label>
+              </div>
             </div>
           </div>
 
-          <div class="section-title">Status Page Settings</div>
-
-          <div class="form-group">
-            <div class="checkbox-group">
-              <input type="checkbox" id="showOnStatusPage" name="showOnStatusPage" 
-                <%= !service || service.showOnStatusPage ? 'checked' : '' %>>
-              <label for="showOnStatusPage">Show on public status page</label>
+          <!-- Status Page Settings -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="fas fa-desktop"></i> Status Page Settings
             </div>
-          </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label for="statusPageLabel">Status Page Label (optional)</label>
-              <input type="text" id="statusPageLabel" name="statusPageLabel" maxlength="100"
-                value="<%= service && service.statusPageLabel ? service.statusPageLabel : '' %>" 
-                placeholder="Display name on status page">
+              <div class="toggle-switch-group">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="showOnStatusPage" name="showOnStatusPage" 
+                    <%= !service || service.showOnStatusPage ? 'checked' : '' %>>
+                  <span class="toggle-slider"></span>
+                </label>
+                <label for="showOnStatusPage" class="toggle-label">
+                  <strong>Show on Public Status Page</strong>
+                  <small>Display this service on the public status page</small>
+                </label>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="statusPageOrder">Display Order</label>
-              <input type="number" id="statusPageOrder" name="statusPageOrder" 
-                value="<%= service && service.statusPageOrder !== undefined ? service.statusPageOrder : 0 %>" 
-                min="0">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="statusPageLabel">
+                  <i class="fas fa-tag"></i> Display Label (optional)
+                </label>
+                <input type="text" id="statusPageLabel" name="statusPageLabel" maxlength="100"
+                  value="<%= service && service.statusPageLabel ? service.statusPageLabel : '' %>" 
+                  placeholder="Custom name on status page">
+              </div>
+              <div class="form-group">
+                <label for="statusPageOrder">
+                  <i class="fas fa-sort-numeric-up"></i> Display Order
+                </label>
+                <input type="number" id="statusPageOrder" name="statusPageOrder" 
+                  value="<%= service && service.statusPageOrder !== undefined ? service.statusPageOrder : 0 %>" 
+                  min="0">
+                <small class="form-help">Lower numbers appear first</small>
+              </div>
             </div>
           </div>
 
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-              <%= service && service._id ? 'Update Service' : 'Create Service' %>
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="fas <%= service && service._id ? 'fa-save' : 'fa-plus' %>"></i>
+              <span><%= service && service._id ? 'Update Service' : 'Create Service' %></span>
             </button>
-            <a href="/admin" class="btn btn-secondary">Cancel</a>
+            <a href="/admin" class="btn btn-secondary btn-lg">
+              <i class="fas fa-times"></i>
+              <span>Cancel</span>
+            </a>
           </div>
         </form>
       </div>
