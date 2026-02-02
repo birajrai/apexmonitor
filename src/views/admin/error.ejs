@@ -4,93 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> - ApexMonitor Admin</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f3f4f6;
-      min-height: 100vh;
-    }
-    .navbar {
-      background-color: white;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 15px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .navbar-brand {
-      font-size: 20px;
-      font-weight: 600;
-      color: #333;
-      text-decoration: none;
-    }
-    .navbar-brand span { color: #667eea; }
-    .navbar-nav {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .navbar-nav a {
-      color: #6b7280;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .navbar-nav a:hover { color: #667eea; }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 60px 20px;
-      text-align: center;
-    }
-    .error-icon {
-      font-size: 64px;
-      margin-bottom: 20px;
-    }
-    h1 {
-      font-size: 24px;
-      color: #111827;
-      margin-bottom: 10px;
-    }
-    p {
-      color: #6b7280;
-      margin-bottom: 30px;
-    }
-    .btn {
-      display: inline-block;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      text-decoration: none;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-      background-color: #e5e7eb;
-      color: #374151;
-    }
-    .btn:hover {
-      background-color: #d1d5db;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <nav class="navbar">
-    <a href="/admin" class="navbar-brand"><span>Apex</span>Monitor</a>
-    <div class="navbar-nav">
-      <a href="/admin">Dashboard</a>
-      <a href="/admin/incidents">Incidents</a>
-      <a href="/" target="_blank">Status Page</a>
-      <a href="/auth/logout">Logout</a>
+    <div class="navbar-inner">
+      <a href="/admin" class="navbar-brand"><span>Apex</span>Monitor</a>
+      <div class="navbar-nav">
+        <a href="/admin">Dashboard</a>
+        <a href="/admin/incidents">Incidents</a>
+        <a href="/admin/settings">Settings</a>
+        <a href="/" target="_blank">Status Page</a>
+        <a href="/auth/logout">Logout</a>
+      </div>
     </div>
   </nav>
 
-  <div class="container">
+  <div class="error-page">
     <div class="error-icon">⚠️</div>
     <h1>Error</h1>
     <p><%= error %></p>
-    <a href="/admin" class="btn">← Back to Dashboard</a>
+    <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
   </div>
+
+  <script src="/script.js"></script>
 </body>
 </html>

@@ -4,8 +4,8 @@
   "description": "Self-hosted uptime monitoring system with status page",
   "main": "dist/app.js",
   "scripts": {
-    "build": "tsc && npm run copy-views",
-    "copy-views": "node -e \"const fs=require('fs');const path=require('path');function copyDir(s,d){fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>{const sp=path.join(s,f),dp=path.join(d,f);fs.statSync(sp).isDirectory()?copyDir(sp,dp):fs.copyFileSync(sp,dp)})};copyDir('src/views','dist/views')\"",
+    "build": "tsc && npm run copy-assets",
+    "copy-assets": "node -e \"const fs=require('fs');const path=require('path');function copyDir(s,d){fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).forEach(f=>{const sp=path.join(s,f),dp=path.join(d,f);fs.statSync(sp).isDirectory()?copyDir(sp,dp):fs.copyFileSync(sp,dp)})};copyDir('src/views','dist/views');copyDir('src/public','dist/public')\"",
     "start": "node dist/app.js",
     "dev": "ts-node src/app.ts"
   },
