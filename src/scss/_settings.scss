@@ -1,0 +1,109 @@
+// ============================================
+// Settings Page
+// ============================================
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: $spacing-6;
+
+  @include respond-to('lg') {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-sidebar {
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+
+  @include respond-to('lg') {
+    position: static;
+  }
+}
+
+.settings-nav {
+  @include flex-column;
+  gap: $spacing-1;
+
+  @include respond-to('lg') {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: $spacing-2;
+    margin-bottom: $spacing-5;
+    padding-bottom: $spacing-5;
+    border-bottom: 1px solid $color-gray-200;
+  }
+
+  &-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-3 $spacing-4;
+    background: none;
+    border: none;
+    border-radius: $radius-lg;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-gray-600;
+    cursor: pointer;
+    transition: all $transition-fast;
+    text-align: left;
+
+    &:hover {
+      background-color: $color-gray-100;
+      color: $color-gray-900;
+    }
+
+    &.active {
+      background-color: $color-primary-alpha;
+      color: $color-primary;
+    }
+
+    i {
+      width: 20px;
+      font-size: 1rem;
+    }
+  }
+}
+
+.settings-content {
+  min-width: 0;
+}
+
+// Profile Section
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-5;
+  padding: $spacing-4 0;
+
+  @include respond-to('sm') {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: $radius-full;
+  object-fit: cover;
+  border: 3px solid $color-primary-alpha;
+}
+
+.profile-info {
+  h3 {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $color-gray-900;
+  }
+}
+
+.profile-role {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  font-size: $font-size-sm;
+  color: $color-gray-500;
+}

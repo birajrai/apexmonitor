@@ -6,6 +6,15 @@ import { scheduler, incidentEngine } from '../core';
 
 const router = Router();
 
+// Extend Express Request to include admin user data
+declare global {
+    namespace Express {
+        interface Request {
+            adminUser?: AdminUser;
+        }
+    }
+}
+
 /**
  * Authentication middleware for admin routes
  */
@@ -17,8 +26,32 @@ function requireAuth(req: Request, res: Response, next: NextFunction): void {
     next();
 }
 
+/**
+ * Load admin user data middleware
+ * This runs after auth and loads the full admin user for gravatarHash etc.
+ */
+async function loadAdminUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        if (req.session.adminId) {
+            const admin = await AdminUser.findByPk(req.session.adminId);
+            if (admin) {
+                req.adminUser = admin;
+                // Set locals for all views
+                res.locals.username = admin.username;
+                res.locals.gravatarHash = admin.getGravatarHash();
+                res.locals.email = admin.email;
+            }
+        }
+        next();
+    } catch (error) {
+        console.error('[Admin] Error loading admin user:', error);
+        next();
+    }
+}
+
 // Apply auth middleware to all routes
 router.use(requireAuth);
+router.use(loadAdminUser);
 
 /**
  * GET /admin
@@ -60,14 +93,12 @@ router.get('/', async (req: Request, res: Response) => {
             title: 'Admin Dashboard',
             services: servicesWithStatus,
             schedulerStatus,
-            username: req.session.adminUsername,
         });
     } catch (error) {
         console.error('[Admin] Dashboard error:', error);
         res.status(500).render('admin/error', {
             title: 'Error',
             error: 'Failed to load dashboard',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -82,7 +113,6 @@ router.get('/services/new', (req: Request, res: Response) => {
         service: null,
         monitorTypes: ['http', 'ping', 'dns'],
         error: null,
-        username: req.session.adminUsername,
     });
 });
 
@@ -164,7 +194,6 @@ router.post('/services', async (req: Request, res: Response) => {
             service: req.body,
             monitorTypes: ['http', 'ping', 'dns'],
             error: error instanceof Error ? error.message : 'Failed to create service',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -181,7 +210,6 @@ router.get('/services/:id/edit', async (req: Request, res: Response) => {
             return res.status(404).render('admin/error', {
                 title: 'Not Found',
                 error: 'Service not found',
-                username: req.session.adminUsername,
             });
         }
 
@@ -190,14 +218,12 @@ router.get('/services/:id/edit', async (req: Request, res: Response) => {
             service: { ...service.toJSON(), _id: service.id },
             monitorTypes: ['http', 'ping', 'dns'],
             error: null,
-            username: req.session.adminUsername,
         });
     } catch (error) {
         console.error('[Admin] Edit service form error:', error);
         res.status(500).render('admin/error', {
             title: 'Error',
             error: 'Failed to load service',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -214,7 +240,6 @@ router.post('/services/:id', async (req: Request, res: Response) => {
             return res.status(404).render('admin/error', {
                 title: 'Not Found',
                 error: 'Service not found',
-                username: req.session.adminUsername,
             });
         }
 
@@ -288,7 +313,6 @@ router.post('/services/:id', async (req: Request, res: Response) => {
             service: { ...req.body, _id: req.params.id },
             monitorTypes: ['http', 'ping', 'dns'],
             error: error instanceof Error ? error.message : 'Failed to update service',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -305,7 +329,6 @@ router.post('/services/:id/delete', async (req: Request, res: Response) => {
             return res.status(404).render('admin/error', {
                 title: 'Not Found',
                 error: 'Service not found',
-                username: req.session.adminUsername,
             });
         }
 
@@ -327,7 +350,6 @@ router.post('/services/:id/delete', async (req: Request, res: Response) => {
         res.status(500).render('admin/error', {
             title: 'Error',
             error: 'Failed to delete service',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -345,7 +367,6 @@ router.post('/services/:id/check', async (req: Request, res: Response) => {
         res.status(500).render('admin/error', {
             title: 'Error',
             error: error instanceof Error ? error.message : 'Failed to run check',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -362,7 +383,6 @@ router.get('/services/:id/history', async (req: Request, res: Response) => {
             return res.status(404).render('admin/error', {
                 title: 'Not Found',
                 error: 'Service not found',
-                username: req.session.adminUsername,
             });
         }
 
@@ -385,14 +405,12 @@ router.get('/services/:id/history', async (req: Request, res: Response) => {
             service: { ...service.toJSON(), _id: service.id },
             checks: checks.map(c => c.toJSON()),
             incidents: incidents.map(i => i.toJSON()),
-            username: req.session.adminUsername,
         });
     } catch (error) {
         console.error('[Admin] Service history error:', error);
         res.status(500).render('admin/error', {
             title: 'Error',
             error: 'Failed to load service history',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -421,14 +439,12 @@ router.get('/incidents', async (req: Request, res: Response) => {
         res.render('admin/incidents', {
             title: 'Incidents',
             incidents: formattedIncidents,
-            username: req.session.adminUsername,
         });
     } catch (error) {
         console.error('[Admin] Incidents error:', error);
         res.status(500).render('admin/error', {
             title: 'Error',
             error: 'Failed to load incidents',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -458,14 +474,12 @@ router.get('/settings', async (req: Request, res: Response) => {
             settings,
             success: req.query.success || null,
             error: req.query.error || null,
-            username: req.session.adminUsername,
         });
     } catch (error) {
         console.error('[Admin] Settings error:', error);
         res.status(500).render('admin/error', {
             title: 'Error',
             error: 'Failed to load settings',
-            username: req.session.adminUsername,
         });
     }
 });
@@ -638,6 +652,33 @@ router.post('/settings/general', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('[Admin] Update general settings error:', error);
         res.redirect('/admin/settings?error=Failed to save general settings#general');
+    }
+});
+
+/**
+ * POST /admin/settings/account/email
+ * Update admin email (used for Gravatar)
+ */
+router.post('/settings/account/email', async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+
+        const admin = await AdminUser.findByPk(req.session.adminId);
+        if (!admin) {
+            return res.redirect('/admin/settings?error=Admin user not found#account');
+        }
+
+        // Allow empty email (removes Gravatar)
+        const newEmail = email && email.trim() ? email.trim() : null;
+
+        await admin.update({ email: newEmail });
+
+        console.log(`[Admin] Email updated to: ${newEmail || '(none)'}`);
+
+        res.redirect('/admin/settings?success=Email updated successfully#account');
+    } catch (error) {
+        console.error('[Admin] Update email error:', error);
+        res.redirect('/admin/settings?error=Failed to update email#account');
     }
 });
 

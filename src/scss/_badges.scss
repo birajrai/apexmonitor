@@ -1,0 +1,168 @@
+// ============================================
+// Badges & Status Indicators
+// ============================================
+
+// Status Badge
+.status-badge {
+  @include badge-base;
+
+  &.status-up {
+    background-color: $color-success-light;
+    color: $color-success-dark;
+  }
+
+  &.status-down {
+    background-color: $color-danger-light;
+    color: $color-danger-dark;
+  }
+
+  &.status-degraded {
+    background-color: $color-warning-light;
+    color: $color-warning-dark;
+  }
+
+  &.status-unknown {
+    background-color: $color-gray-100;
+    color: $color-gray-600;
+  }
+}
+
+// Group Badge
+.group-badge {
+  display: inline-flex;
+  padding: $spacing-1 $spacing-2;
+  background-color: $color-gray-100;
+  color: $color-gray-600;
+  font-size: $font-size-xs;
+  border-radius: $radius-sm;
+}
+
+// Type Badge
+.type-badge {
+  display: inline-flex;
+  padding: $spacing-1 $spacing-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-sm;
+  background-color: $color-primary-alpha;
+  color: $color-primary;
+
+  &.type-http { background-color: #dbeafe; color: #2563eb; }
+  &.type-ping { background-color: #dcfce7; color: #16a34a; }
+  &.type-dns { background-color: #fef3c7; color: #d97706; }
+}
+
+// Toggle Badge
+.toggle-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  border-radius: $radius-sm;
+
+  &.toggle-on {
+    background-color: $color-success-light;
+    color: $color-success-dark;
+  }
+
+  &.toggle-off {
+    background-color: $color-gray-100;
+    color: $color-gray-500;
+  }
+}
+
+// Visibility Badge
+.visibility-badge {
+  @include flex-center;
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-full;
+  font-size: 0.875rem;
+
+  &.visible {
+    background-color: $color-success-light;
+    color: $color-success-dark;
+  }
+
+  &.hidden {
+    background-color: $color-gray-100;
+    color: $color-gray-400;
+  }
+}
+
+// Response Time
+.response-time {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &.fast { color: $color-success; }
+  &.medium { color: $color-warning; }
+  &.slow { color: $color-danger; }
+}
+
+// Duration Badge
+.duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  background-color: $color-gray-100;
+  color: $color-gray-600;
+  font-size: $font-size-xs;
+  border-radius: $radius-sm;
+
+  &.active {
+    background-color: $color-danger-light;
+    color: $color-danger-dark;
+  }
+}
+
+// Datetime
+.datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  font-size: $font-size-xs;
+  color: $color-gray-500;
+}
+
+// Scheduler Status
+.scheduler-status {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border-radius: $radius-full;
+  background-color: $color-success-light;
+  color: $color-success-dark;
+  border: 1px solid $color-success;
+
+  &.stopped {
+    background-color: $color-danger-light;
+    color: $color-danger-dark;
+    border-color: $color-danger;
+  }
+
+  @include respond-to('md') {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.checking-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  margin-left: $spacing-2;
+  padding: $spacing-1 $spacing-2;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+}

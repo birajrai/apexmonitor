@@ -1,0 +1,131 @@
+// ============================================
+// Cards
+// ============================================
+
+.card {
+  @include card-base;
+
+  &-header {
+    background-color: $color-gray-50;
+    border-bottom: 1px solid $color-gray-200;
+    padding: $spacing-4 $spacing-5;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    color: $color-gray-700;
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+
+    i {
+      color: $color-primary;
+    }
+  }
+
+  &-body {
+    padding: $spacing-6;
+
+    @include respond-to('sm') {
+      padding: $spacing-4;
+    }
+  }
+}
+
+// Stats Grid
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-5;
+  margin-top: $spacing-6;
+
+  @include respond-to('md') {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @include respond-to('sm') {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  padding: $spacing-5;
+  background: $color-white;
+  border-radius: $radius-xl;
+  border: 1px solid $color-gray-200;
+}
+
+.stat-icon {
+  @include icon-circle;
+  font-size: 1.25rem;
+
+  &-primary { @include icon-circle(48px, $color-primary-alpha, $color-primary); }
+  &-success { @include icon-circle(48px, $color-success-light, $color-success-dark); }
+  &-danger { @include icon-circle(48px, $color-danger-light, $color-danger-dark); }
+  &-warning { @include icon-circle(48px, $color-warning-light, $color-warning-dark); }
+}
+
+.stat-content {
+  @include flex-column;
+}
+
+.stat-value {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-gray-900;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: $font-size-sm;
+  color: $color-gray-500;
+  margin-top: $spacing-1;
+}
+
+// Info Cards Grid
+.info-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $spacing-4;
+  margin-bottom: $spacing-6;
+
+  @include respond-to('sm') {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-4;
+  background: $color-white;
+  border-radius: $radius-lg;
+  border: 1px solid $color-gray-200;
+
+  &-icon {
+    @include icon-circle(40px, $color-primary-alpha, $color-primary);
+    font-size: 1rem;
+
+    &.icon-success { @include icon-circle(40px, $color-success-light, $color-success-dark); }
+    &.icon-warning { @include icon-circle(40px, $color-warning-light, $color-warning-dark); }
+  }
+
+  &-content {
+    @include flex-column;
+  }
+
+  &-label {
+    font-size: $font-size-xs;
+    color: $color-gray-500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &-value {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: $color-gray-900;
+  }
+}

@@ -1,0 +1,56 @@
+// ============================================
+// Utility Classes
+// ============================================
+
+// Text alignment
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+// Text colors
+.text-muted { color: $color-gray-500; }
+.text-danger { color: $color-danger; }
+.text-success { color: $color-success; }
+.text-warning { color: $color-warning; }
+
+// Font weights
+.font-bold { font-weight: $font-weight-bold; }
+.font-medium { font-weight: $font-weight-medium; }
+
+// Margins
+.mb-0 { margin-bottom: 0; }
+.mb-2 { margin-bottom: $spacing-2; }
+.mb-4 { margin-bottom: $spacing-4; }
+.mb-6 { margin-bottom: $spacing-6; }
+
+.mt-0 { margin-top: 0; }
+.mt-2 { margin-top: $spacing-2; }
+.mt-4 { margin-top: $spacing-4; }
+.mt-6 { margin-top: $spacing-6; }
+
+// Display
+.d-none { display: none; }
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-inline { display: inline; }
+.d-inline-flex { display: inline-flex; }
+
+// Gap
+.gap-2 { gap: $spacing-2; }
+.gap-4 { gap: $spacing-4; }
+
+// Truncate
+.truncate {
+  @include truncate;
+}
+
+// Error text
+.error-text {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  color: $color-danger-dark;
+  font-size: $font-size-xs;
+  max-width: 250px;
+  @include truncate;
+}

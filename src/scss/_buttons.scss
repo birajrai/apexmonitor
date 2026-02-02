@@ -1,0 +1,84 @@
+// ============================================
+// Buttons
+// ============================================
+
+.btn {
+  @include btn-base;
+
+  // Variants
+  &-primary {
+    @include gradient-primary;
+    color: $color-white;
+    box-shadow: 0 2px 4px rgba($color-primary, 0.3);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba($color-primary, 0.4);
+      color: $color-white;
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  }
+
+  &-secondary {
+    background-color: $color-white;
+    color: $color-gray-700;
+    border: 1px solid $color-gray-300;
+
+    &:hover:not(:disabled) {
+      background-color: $color-gray-50;
+      border-color: $color-gray-400;
+      color: $color-gray-800;
+    }
+  }
+
+  &-danger {
+    background-color: $color-danger;
+    color: $color-white;
+
+    &:hover:not(:disabled) {
+      background-color: $color-danger-dark;
+      color: $color-white;
+    }
+  }
+
+  &-ghost {
+    background-color: transparent;
+    color: $color-gray-600;
+
+    &:hover:not(:disabled) {
+      background-color: $color-gray-100;
+      color: $color-gray-800;
+    }
+  }
+
+  // Sizes
+  &-sm {
+    padding: $spacing-2 $spacing-3;
+    font-size: $font-size-xs;
+  }
+
+  &-lg {
+    padding: $spacing-4 $spacing-6;
+    font-size: $font-size-base;
+  }
+
+  &-block {
+    width: 100%;
+  }
+
+  // Icon button
+  &-icon {
+    padding: $spacing-2;
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-md;
+  }
+
+  &-danger-hover:hover {
+    color: $color-danger;
+    background-color: $color-danger-light;
+  }
+}

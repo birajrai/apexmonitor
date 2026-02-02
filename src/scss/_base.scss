@@ -1,0 +1,57 @@
+// ============================================
+// Base & Reset Styles
+// ============================================
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: $font-family;
+  line-height: 1.6;
+  color: $color-gray-700;
+  background-color: $color-gray-50;
+  min-height: 100vh;
+}
+
+a {
+  color: $color-primary;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary-dark;
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// Layout
+.container {
+  width: 100%;
+  max-width: $container-lg;
+  margin: 0 auto;
+  padding: 0 $spacing-5;
+
+  &-sm { max-width: $container-sm; }
+  &-md { max-width: $container-md; }
+
+  @include respond-to('sm') {
+    padding: 0 $spacing-4;
+  }
+}
+
+.admin-content {
+  padding: $spacing-8 0;
+}

@@ -1,12 +1,14 @@
 /* ============================================
-   ApexMonitor - Unified JavaScript
+   ApexMonitor - Modern UI JavaScript
    ============================================ */
 
 /**
  * Initialize all interactive components when DOM is ready
  */
 document.addEventListener('DOMContentLoaded', function() {
-  initTabs();
+  initNavbarToggle();
+  initUserDropdown();
+  initSettingsTabs();
   initMonitorConfig();
   initDiscordTest();
   initDeleteConfirmations();
@@ -14,21 +16,64 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Tab Switching Functionality
- * Used in settings page and other tabbed interfaces
+ * Mobile Navbar Toggle
  */
-function initTabs() {
-  const tabButtons = document.querySelectorAll('.tab-btn');
+function initNavbarToggle() {
+  const toggle = document.getElementById('navbarToggle');
+  const nav = document.querySelector('.navbar-nav');
   
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', function() {
+  if (toggle && nav) {
+    toggle.addEventListener('click', function() {
+      nav.classList.toggle('open');
+    });
+    
+    // Close navbar when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!toggle.contains(e.target) && !nav.contains(e.target)) {
+        nav.classList.remove('open');
+      }
+    });
+  }
+}
+
+/**
+ * User Dropdown Toggle
+ */
+function initUserDropdown() {
+  const dropdown = document.querySelector('.user-dropdown');
+  const toggle = document.getElementById('userDropdownToggle');
+  
+  if (dropdown && toggle) {
+    toggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+      }
+    });
+  }
+}
+
+/**
+ * Settings Page Tab Navigation
+ */
+function initSettingsTabs() {
+  const navItems = document.querySelectorAll('.settings-nav-item');
+  const tabContents = document.querySelectorAll('.tab-content');
+  
+  navItems.forEach(item => {
+    item.addEventListener('click', function() {
       const tabId = this.dataset.tab;
       
-      // Remove active class from all tabs and contents
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      // Remove active class from all nav items and contents
+      navItems.forEach(n => n.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
       
-      // Add active class to clicked tab and corresponding content
+      // Add active class to clicked item and corresponding content
       this.classList.add('active');
       const tabContent = document.getElementById(tabId);
       if (tabContent) {
@@ -36,6 +81,25 @@ function initTabs() {
       }
       
       // Update URL hash without scrolling
+      history.replaceState(null, null, '#' + tabId);
+    });
+  });
+  
+  // Also support legacy tab buttons
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabId = this.dataset.tab;
+      
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      this.classList.add('active');
+      const tabContent = document.getElementById(tabId);
+      if (tabContent) {
+        tabContent.classList.add('active');
+      }
+      
       history.replaceState(null, null, '#' + tabId);
     });
   });
@@ -47,7 +111,16 @@ function initTabs() {
 function initUrlHashTabs() {
   if (window.location.hash) {
     const tabId = window.location.hash.substring(1);
-    const tabBtn = document.querySelector('[data-tab="' + tabId + '"]');
+    
+    // Try settings nav first
+    const settingsNav = document.querySelector('.settings-nav-item[data-tab="' + tabId + '"]');
+    if (settingsNav) {
+      settingsNav.click();
+      return;
+    }
+    
+    // Try legacy tab buttons
+    const tabBtn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
     if (tabBtn) {
       tabBtn.click();
     }
@@ -110,8 +183,8 @@ function initDiscordTest() {
       }
       
       // Disable button and show loading state
-      const originalText = this.textContent;
-      this.textContent = 'Sending...';
+      const originalHtml = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Sending...</span>';
       this.disabled = true;
       
       try {
@@ -134,7 +207,7 @@ function initDiscordTest() {
         showNotification('Failed to send test notification. Please check your connection.', 'error');
       } finally {
         // Restore button state
-        this.textContent = originalText;
+        this.innerHTML = originalHtml;
         this.disabled = false;
       }
     });
@@ -170,12 +243,23 @@ function showNotification(message, type = 'info') {
     existing.remove();
   }
   
+  // Get icon based on type
+  const icons = {
+    success: 'fa-check-circle',
+    error: 'fa-exclamation-circle',
+    warning: 'fa-exclamation-triangle',
+    info: 'fa-info-circle'
+  };
+  
   // Create notification element
   const notification = document.createElement('div');
   notification.className = 'notification-toast notification-' + type;
   notification.innerHTML = `
+    <i class="fas ${icons[type] || icons.info}"></i>
     <span class="notification-message">${escapeHtml(message)}</span>
-    <button class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+    <button class="notification-close" onclick="this.parentElement.remove()">
+      <i class="fas fa-times"></i>
+    </button>
   `;
   
   // Add styles if not already present
@@ -188,14 +272,16 @@ function showNotification(message, type = 'info') {
         top: 20px;
         right: 20px;
         padding: 16px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         display: flex;
         align-items: center;
         gap: 12px;
         z-index: 10000;
         animation: slideIn 0.3s ease;
         max-width: 400px;
+        font-size: 14px;
+        font-weight: 500;
       }
       .notification-success {
         background-color: #dcfce7;
@@ -213,22 +299,27 @@ function showNotification(message, type = 'info') {
         color: #d97706;
       }
       .notification-info {
-        background-color: #e0e7ff;
-        border: 1px solid #6366f1;
-        color: #4f46e5;
+        background-color: #dbeafe;
+        border: 1px solid #3b82f6;
+        color: #2563eb;
+      }
+      .notification-toast i:first-child {
+        font-size: 18px;
       }
       .notification-message {
         flex: 1;
-        font-size: 14px;
-        font-weight: 500;
       }
       .notification-close {
         background: none;
         border: none;
-        font-size: 20px;
+        font-size: 14px;
         cursor: pointer;
         opacity: 0.6;
         color: inherit;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .notification-close:hover {
         opacity: 1;
@@ -243,6 +334,16 @@ function showNotification(message, type = 'info') {
           opacity: 1;
         }
       }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
     `;
     document.head.appendChild(style);
   }
@@ -253,7 +354,7 @@ function showNotification(message, type = 'info') {
   // Auto-remove after 5 seconds
   setTimeout(() => {
     if (notification.parentElement) {
-      notification.style.animation = 'slideIn 0.3s ease reverse';
+      notification.style.animation = 'slideOut 0.3s ease forwards';
       setTimeout(() => notification.remove(), 300);
     }
   }, 5000);

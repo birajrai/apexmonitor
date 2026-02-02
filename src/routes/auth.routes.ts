@@ -103,7 +103,7 @@ router.post('/setup', async (req: Request, res: Response) => {
             });
         }
 
-        const { username, password, confirmPassword } = req.body;
+        const { username, email, password, confirmPassword } = req.body;
 
         // Validate input
         if (!username || !password || !confirmPassword) {
@@ -143,6 +143,7 @@ router.post('/setup', async (req: Request, res: Response) => {
 
         const admin = await AdminUser.create({
             username,
+            email: email && email.trim() ? email.trim() : null,
             passwordHash,
         });
 

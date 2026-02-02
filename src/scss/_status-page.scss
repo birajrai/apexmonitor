@@ -1,0 +1,339 @@
+// ============================================
+// Status Page (Dark Theme)
+// ============================================
+
+.status-page {
+  background-color: $color-dark-bg;
+  color: $color-dark-text;
+  min-height: 100vh;
+}
+
+.status-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: $spacing-10 $spacing-5;
+
+  @include respond-to('sm') {
+    padding: $spacing-5 $spacing-4;
+  }
+}
+
+.status-header {
+  text-align: center;
+  margin-bottom: $spacing-10;
+
+  h1 {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    margin-bottom: $spacing-4;
+    color: $color-white;
+  }
+}
+
+.status-logo {
+  @include flex-center;
+  @include gradient-primary;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto $spacing-5;
+  border-radius: $radius-xl;
+  font-size: 1.75rem;
+  color: white;
+}
+
+.overall-status {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-3 $spacing-5;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-3;
+
+  &.operational {
+    background-color: rgba($color-success, 0.15);
+    color: $color-success;
+    border: 1px solid rgba($color-success, 0.3);
+  }
+
+  &.degraded {
+    background-color: rgba($color-warning, 0.15);
+    color: $color-warning;
+    border: 1px solid rgba($color-warning, 0.3);
+  }
+
+  &.outage {
+    background-color: rgba($color-danger, 0.15);
+    color: $color-danger;
+    border: 1px solid rgba($color-danger, 0.3);
+  }
+}
+
+.last-updated {
+  @include flex-center;
+  gap: $spacing-2;
+  font-size: $font-size-xs;
+  color: $color-dark-muted;
+}
+
+// Service Groups
+.service-group {
+  background-color: $color-dark-surface;
+  border-radius: $radius-xl;
+  margin-bottom: $spacing-5;
+  overflow: hidden;
+  border: 1px solid $color-dark-border;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  background-color: $color-dark-surface-2;
+  padding: $spacing-4 $spacing-5;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-xs;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: $color-dark-muted;
+
+  i {
+    font-size: 0.875rem;
+  }
+}
+
+.service-item {
+  @include flex-between;
+  padding: $spacing-4 $spacing-5;
+  border-bottom: 1px solid $color-dark-border;
+  transition: background-color $transition-fast;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: $color-dark-surface-2;
+  }
+
+  @include respond-to('md') {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-3;
+  }
+}
+
+.service-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.status-dot {
+  @include flex-center;
+  width: 24px;
+  height: 24px;
+  border-radius: $radius-full;
+  font-size: 0.625rem;
+  flex-shrink: 0;
+
+  &.operational {
+    background-color: rgba($color-success, 0.2);
+    color: $color-success;
+  }
+
+  &.degraded {
+    background-color: rgba($color-warning, 0.2);
+    color: $color-warning;
+  }
+
+  &.down,
+  &.outage {
+    background-color: rgba($color-danger, 0.2);
+    color: $color-danger;
+  }
+}
+
+.service-name {
+  font-weight: $font-weight-medium;
+  color: $color-dark-text;
+}
+
+.service-meta {
+  display: flex;
+  align-items: center;
+  gap: $spacing-5;
+  font-size: $font-size-sm;
+  color: $color-dark-muted;
+
+  @include respond-to('md') {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .response-time {
+    min-width: 70px;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: $spacing-1;
+  }
+}
+
+// Uptime Bar
+.uptime-bar {
+  display: flex;
+  gap: 2px;
+  height: 24px;
+
+  .bar {
+    width: 3px;
+    border-radius: 1px;
+    transition: all $transition-fast;
+
+    &.up { background-color: $color-success; }
+    &.down { background-color: $color-danger; }
+    &.empty { background-color: $color-dark-border; }
+
+    &:hover {
+      transform: scaleY(1.2);
+    }
+
+    @include respond-to('md') {
+      width: 2px;
+    }
+  }
+}
+
+.uptime-percent {
+  min-width: 70px;
+  text-align: right;
+  font-weight: $font-weight-semibold;
+
+  &.good { color: $color-success; }
+  &.warning { color: $color-warning; }
+  &.bad { color: $color-danger; }
+}
+
+// Incidents Section
+.incidents-section {
+  margin-top: $spacing-10;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-5;
+    color: $color-white;
+
+    i {
+      color: $color-warning;
+    }
+  }
+}
+
+.incident-list {
+  background-color: $color-dark-surface;
+  border-radius: $radius-xl;
+  overflow: hidden;
+  border: 1px solid $color-dark-border;
+}
+
+.incident-item {
+  @include flex-between;
+  padding: $spacing-4 $spacing-5;
+  border-bottom: 1px solid $color-dark-border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.incident-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.incident-status {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+
+  &.active {
+    background-color: rgba($color-danger, 0.15);
+    color: $color-danger;
+  }
+
+  &.resolved {
+    background-color: rgba($color-success, 0.15);
+    color: $color-success;
+  }
+}
+
+.incident-service {
+  font-weight: $font-weight-medium;
+  color: $color-dark-text;
+}
+
+.incident-time {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-xs;
+  color: $color-dark-muted;
+}
+
+.no-incidents,
+.no-services {
+  @include flex-column;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-10;
+  text-align: center;
+  color: $color-dark-muted;
+
+  i {
+    font-size: 2rem;
+    opacity: 0.5;
+  }
+}
+
+// Status Page Footer
+.status-footer {
+  text-align: center;
+  margin-top: $spacing-10;
+  padding-top: $spacing-5;
+  border-top: 1px solid $color-dark-border;
+}
+
+.footer-content {
+  @include flex-center;
+  gap: $spacing-2;
+  font-size: $font-size-xs;
+  color: $color-dark-muted;
+}
+
+.footer-divider {
+  color: $color-dark-border;
+}
+
+.status-footer a {
+  color: $color-primary-light;
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+
+  &:hover {
+    color: $color-primary;
+  }
+}
