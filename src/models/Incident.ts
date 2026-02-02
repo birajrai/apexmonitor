@@ -6,10 +6,10 @@ import { Service } from './Service';
  * Incident attributes interface
  */
 export interface IncidentAttributes {
-  id: number;
-  serviceId: number;
-  startedAt: Date;
-  resolvedAt?: Date;
+    id: number;
+    serviceId: number;
+    startedAt: Date;
+    resolvedAt?: Date;
 }
 
 /**
@@ -22,57 +22,57 @@ export interface IncidentCreationAttributes extends Optional<IncidentAttributes,
  * Represents a service outage incident
  */
 export class Incident extends Model<IncidentAttributes, IncidentCreationAttributes> implements IncidentAttributes {
-  public id!: number;
-  public serviceId!: number;
-  public startedAt!: Date;
-  public resolvedAt?: Date;
+    public id!: number;
+    public serviceId!: number;
+    public startedAt!: Date;
+    public resolvedAt?: Date;
 
-  // Association
-  public service?: Service;
+    // Association
+    public service?: Service;
 }
 
 Incident.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
+    {
+        id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        serviceId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'services',
+                key: 'id',
+            },
+            onDelete: 'CASCADE',
+        },
+        startedAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW,
+        },
+        resolvedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
     },
-    serviceId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'services',
-        key: 'id',
-      },
-      onDelete: 'CASCADE',
+    {
+        sequelize,
+        tableName: 'incidents',
+        timestamps: false,
+        indexes: [
+            {
+                fields: ['serviceId'],
+            },
+            {
+                fields: ['serviceId', 'resolvedAt'],
+            },
+            {
+                fields: ['startedAt'],
+            },
+        ],
     },
-    startedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    resolvedAt: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-  },
-  {
-    sequelize,
-    tableName: 'incidents',
-    timestamps: false,
-    indexes: [
-      {
-        fields: ['serviceId'],
-      },
-      {
-        fields: ['serviceId', 'resolvedAt'],
-      },
-      {
-        fields: ['startedAt'],
-      },
-    ],
-  }
 );
 
 // Define association

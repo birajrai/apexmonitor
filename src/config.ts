@@ -18,6 +18,7 @@ export const config = {
     name: process.env.DB_NAME || 'apexmonitor',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
+    ssl: process.env.DB_SSL === 'true',
   },
 
   // Session configuration

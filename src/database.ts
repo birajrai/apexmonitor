@@ -13,8 +13,14 @@ export const sequelize = new Sequelize(
     port: config.database.port,
     dialect: 'postgres',
     logging: config.nodeEnv === 'development' ? console.log : false,
+    dialectOptions: {
+      ssl: config.database.ssl ? {
+        require: true,
+        rejectUnauthorized: false,
+      } : false,
+    },
     pool: {
-      max: 10,
+      max: 3,
       min: 0,
       acquire: 30000,
       idle: 10000,
