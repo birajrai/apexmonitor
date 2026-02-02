@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcrypt';
 import { Op, WhereOptions } from 'sequelize';
-import { Service, Check, Incident, MonitorType, MonitorConfig, IncidentAttributes } from '../models';
+import { Service, Check, Incident, MonitorType, MonitorConfig, IncidentAttributes, Settings, SETTING_KEYS, AdminUser } from '../models';
 import { scheduler, incidentEngine } from '../core';
 
 const router = Router();
@@ -429,6 +430,214 @@ router.get('/incidents', async (req: Request, res: Response) => {
             error: 'Failed to load incidents',
             username: req.session.adminUsername,
         });
+    }
+});
+
+// ============================================
+// SETTINGS ROUTES
+// ============================================
+
+/**
+ * GET /admin/settings
+ * Show settings page
+ */
+router.get('/settings', async (req: Request, res: Response) => {
+    try {
+        const settings = await Settings.getMultiple([
+            SETTING_KEYS.DISCORD_WEBHOOK_URL,
+            SETTING_KEYS.DISCORD_ENABLED,
+            SETTING_KEYS.SITE_NAME,
+            SETTING_KEYS.CHECK_RETENTION_DAYS,
+            SETTING_KEYS.SCHEDULER_INTERVAL_SECONDS,
+            SETTING_KEYS.CONSECUTIVE_FAILURES_THRESHOLD,
+            SETTING_KEYS.INCIDENT_COOLDOWN_MINUTES,
+        ]);
+
+        res.render('admin/settings', {
+            title: 'Settings',
+            settings,
+            success: req.query.success || null,
+            error: req.query.error || null,
+            username: req.session.adminUsername,
+        });
+    } catch (error) {
+        console.error('[Admin] Settings error:', error);
+        res.status(500).render('admin/error', {
+            title: 'Error',
+            error: 'Failed to load settings',
+            username: req.session.adminUsername,
+        });
+    }
+});
+
+/**
+ * POST /admin/settings/notifications
+ * Update notification settings
+ */
+router.post('/settings/notifications', async (req: Request, res: Response) => {
+    try {
+        const { discordWebhookUrl, discordEnabled } = req.body;
+
+        await Settings.setMultiple({
+            [SETTING_KEYS.DISCORD_WEBHOOK_URL]: discordWebhookUrl || '',
+            [SETTING_KEYS.DISCORD_ENABLED]: discordEnabled === 'on' ? 'true' : 'false',
+        });
+
+        console.log('[Admin] Updated notification settings');
+
+        res.redirect('/admin/settings?success=Notification settings saved successfully');
+    } catch (error) {
+        console.error('[Admin] Update notification settings error:', error);
+        res.redirect('/admin/settings?error=Failed to save notification settings');
+    }
+});
+
+/**
+ * POST /admin/settings/notifications/test
+ * Send a test Discord notification
+ */
+router.post('/settings/notifications/test', async (req: Request, res: Response) => {
+    try {
+        const { webhookUrl } = req.body;
+
+        if (!webhookUrl) {
+            return res.json({ success: false, error: 'Webhook URL is required' });
+        }
+
+        // Send test message to Discord
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                embeds: [{
+                    title: '🧪 Test Notification',
+                    description: 'This is a test notification from ApexMonitor. If you see this, your webhook is configured correctly!',
+                    color: 0x667eea,
+                    timestamp: new Date().toISOString(),
+                    footer: { text: 'ApexMonitor' },
+                }],
+            }),
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            return res.json({ success: false, error: `Discord returned ${response.status}: ${text}` });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('[Admin] Test notification error:', error);
+        res.json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+});
+
+/**
+ * POST /admin/settings/account/username
+ * Update admin username
+ */
+router.post('/settings/account/username', async (req: Request, res: Response) => {
+    try {
+        const { newUsername } = req.body;
+
+        if (!newUsername || newUsername.length < 3 || newUsername.length > 50) {
+            return res.redirect('/admin/settings?error=Username must be between 3 and 50 characters#account');
+        }
+
+        const admin = await AdminUser.findByPk(req.session.adminId);
+        if (!admin) {
+            return res.redirect('/admin/settings?error=Admin user not found#account');
+        }
+
+        // Check if username is already taken
+        const existing = await AdminUser.findOne({ where: { username: newUsername } });
+        if (existing && existing.id !== admin.id) {
+            return res.redirect('/admin/settings?error=Username is already taken#account');
+        }
+
+        await admin.update({ username: newUsername });
+        req.session.adminUsername = newUsername;
+
+        console.log(`[Admin] Username updated to: ${newUsername}`);
+
+        res.redirect('/admin/settings?success=Username updated successfully#account');
+    } catch (error) {
+        console.error('[Admin] Update username error:', error);
+        res.redirect('/admin/settings?error=Failed to update username#account');
+    }
+});
+
+/**
+ * POST /admin/settings/account/password
+ * Update admin password
+ */
+router.post('/settings/account/password', async (req: Request, res: Response) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.redirect('/admin/settings?error=All password fields are required#account');
+        }
+
+        if (newPassword.length < 8) {
+            return res.redirect('/admin/settings?error=New password must be at least 8 characters#account');
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.redirect('/admin/settings?error=New passwords do not match#account');
+        }
+
+        const admin = await AdminUser.findByPk(req.session.adminId);
+        if (!admin) {
+            return res.redirect('/admin/settings?error=Admin user not found#account');
+        }
+
+        // Verify current password
+        const isValid = await bcrypt.compare(currentPassword, admin.passwordHash);
+        if (!isValid) {
+            return res.redirect('/admin/settings?error=Current password is incorrect#account');
+        }
+
+        // Hash and update new password
+        const passwordHash = await bcrypt.hash(newPassword, 12);
+        await admin.update({ passwordHash });
+
+        console.log('[Admin] Password updated successfully');
+
+        res.redirect('/admin/settings?success=Password updated successfully#account');
+    } catch (error) {
+        console.error('[Admin] Update password error:', error);
+        res.redirect('/admin/settings?error=Failed to update password#account');
+    }
+});
+
+/**
+ * POST /admin/settings/general
+ * Update general settings
+ */
+router.post('/settings/general', async (req: Request, res: Response) => {
+    try {
+        const {
+            siteName,
+            checkRetentionDays,
+            schedulerIntervalSeconds,
+            consecutiveFailuresThreshold,
+            incidentCooldownMinutes,
+        } = req.body;
+
+        await Settings.setMultiple({
+            [SETTING_KEYS.SITE_NAME]: siteName || 'ApexMonitor',
+            [SETTING_KEYS.CHECK_RETENTION_DAYS]: String(parseInt(checkRetentionDays, 10) || 30),
+            [SETTING_KEYS.SCHEDULER_INTERVAL_SECONDS]: String(parseInt(schedulerIntervalSeconds, 10) || 60),
+            [SETTING_KEYS.CONSECUTIVE_FAILURES_THRESHOLD]: String(parseInt(consecutiveFailuresThreshold, 10) || 3),
+            [SETTING_KEYS.INCIDENT_COOLDOWN_MINUTES]: String(parseInt(incidentCooldownMinutes, 10) || 10),
+        });
+
+        console.log('[Admin] Updated general settings');
+
+        res.redirect('/admin/settings?success=General settings saved successfully#general');
+    } catch (error) {
+        console.error('[Admin] Update general settings error:', error);
+        res.redirect('/admin/settings?error=Failed to save general settings#general');
     }
 });
 

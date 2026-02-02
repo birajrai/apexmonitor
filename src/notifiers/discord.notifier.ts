@@ -1,4 +1,5 @@
 import { NotifierPlugin, IncidentEvent } from './types';
+import { Settings, SETTING_KEYS } from '../models';
 import { config } from '../config';
 
 /**
@@ -9,9 +10,21 @@ export const discordNotifier: NotifierPlugin = {
   type: 'discord',
 
   async notify(event: IncidentEvent): Promise<void> {
-    const webhookUrl = config.discordWebhookUrl;
+    // Check if Discord notifications are enabled (from database)
+    const [enabled, webhookUrl] = await Promise.all([
+      Settings.getValue(SETTING_KEYS.DISCORD_ENABLED, 'false'),
+      Settings.getValue(SETTING_KEYS.DISCORD_WEBHOOK_URL, ''),
+    ]);
 
-    if (!webhookUrl) {
+    // Fall back to config if database setting is empty
+    const finalWebhookUrl = webhookUrl || config.discordWebhookUrl;
+
+    if (enabled !== 'true' && !config.discordWebhookUrl) {
+      console.log('[Discord Notifier] Notifications disabled, skipping');
+      return;
+    }
+
+    if (!finalWebhookUrl) {
       console.warn('[Discord Notifier] No webhook URL configured, skipping notification');
       return;
     }
@@ -20,7 +33,7 @@ export const discordNotifier: NotifierPlugin = {
     const embed = buildEmbed(event);
 
     try {
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(finalWebhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

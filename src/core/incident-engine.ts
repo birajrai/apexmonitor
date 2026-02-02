@@ -146,24 +146,21 @@ class IncidentEngine {
     const state = this.getState(service.id.toString());
     const now = new Date();
 
-    // Check cooldown window - only send notification if enough time has passed
-    const shouldNotify = this.shouldSendNotification(state, incident.startedAt);
-
     // Update incident
     await incident.update({ resolvedAt: now });
 
-    // Send notification if not in cooldown
-    if (shouldNotify) {
-      await this.sendNotification({
-        type: 'incident_resolved',
-        service,
-        incidentId: incident.id.toString(),
-        startedAt: incident.startedAt,
-        resolvedAt: now,
-      });
+    // Always send recovery notification when an incident is resolved
+    await this.sendNotification({
+      type: 'incident_resolved',
+      service,
+      incidentId: incident.id.toString(),
+      startedAt: incident.startedAt,
+      resolvedAt: now,
+    });
 
-      state.lastNotificationAt = now;
-    }
+    state.lastNotificationAt = now;
+    
+    console.log(`[Incident Engine] Recovery notification sent for "${service.name}"`);
   }
 
   /**

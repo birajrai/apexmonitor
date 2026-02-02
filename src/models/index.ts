@@ -3,3 +3,4 @@ export { AdminUser, AdminUserAttributes, AdminUserCreationAttributes } from './A
 export { Service, ServiceAttributes, ServiceCreationAttributes, MonitorType, MonitorConfig, HttpMonitorConfig, PingMonitorConfig, DnsMonitorConfig } from './Service';
 export { Check, CheckAttributes, CheckCreationAttributes, CheckStatus } from './Check';
 export { Incident, IncidentAttributes, IncidentCreationAttributes } from './Incident';
+export { Settings, SettingsAttributes, SettingsCreationAttributes, SETTING_KEYS } from './Settings';

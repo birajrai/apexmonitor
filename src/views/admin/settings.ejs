@@ -1,0 +1,270 @@
+<%- include('layout', { body: `
+  <div class="page-header">
+    <h1>Settings</h1>
+  </div>
+
+  ${success ? '<div class="success-alert">' + success + '</div>' : ''}
+  ${error ? '<div class="error-alert">' + error + '</div>' : ''}
+
+  <div class="settings-container">
+    <div class="settings-tabs">
+      <button class="tab-btn active" data-tab="notifications">Notifications</button>
+      <button class="tab-btn" data-tab="account">Account</button>
+      <button class="tab-btn" data-tab="general">General</button>
+    </div>
+
+    <!-- Notifications Tab -->
+    <div class="tab-content active" id="notifications">
+      <div class="card">
+        <div class="card-header">Discord Notifications</div>
+        <div class="card-body">
+          <form action="/admin/settings/notifications" method="POST">
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" id="discordEnabled" name="discordEnabled" ${settings.discord_enabled === 'true' ? 'checked' : ''}>
+                <label for="discordEnabled">Enable Discord notifications</label>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="discordWebhookUrl">Discord Webhook URL</label>
+              <input type="url" id="discordWebhookUrl" name="discordWebhookUrl" 
+                     value="${settings.discord_webhook_url || ''}" 
+                     placeholder="https://discord.com/api/webhooks/...">
+              <small class="form-help">Get this from Discord: Server Settings → Integrations → Webhooks</small>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+              <button type="button" class="btn btn-secondary" id="testDiscord">Test Notification</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Tab -->
+    <div class="tab-content" id="account">
+      <div class="card">
+        <div class="card-header">Update Username</div>
+        <div class="card-body">
+          <form action="/admin/settings/account/username" method="POST">
+            <div class="form-group">
+              <label for="currentUsername">Current Username</label>
+              <input type="text" id="currentUsername" value="${username}" disabled>
+            </div>
+            
+            <div class="form-group">
+              <label for="newUsername">New Username</label>
+              <input type="text" id="newUsername" name="newUsername" 
+                     placeholder="Enter new username" minlength="3" maxlength="50" required>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Update Username</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-header">Change Password</div>
+        <div class="card-body">
+          <form action="/admin/settings/account/password" method="POST">
+            <div class="form-group">
+              <label for="currentPassword">Current Password</label>
+              <input type="password" id="currentPassword" name="currentPassword" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="newPassword">New Password</label>
+              <input type="password" id="newPassword" name="newPassword" 
+                     placeholder="Minimum 8 characters" minlength="8" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="confirmPassword">Confirm New Password</label>
+              <input type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Change Password</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- General Tab -->
+    <div class="tab-content" id="general">
+      <div class="card">
+        <div class="card-header">General Settings</div>
+        <div class="card-body">
+          <form action="/admin/settings/general" method="POST">
+            <div class="form-group">
+              <label for="siteName">Site Name</label>
+              <input type="text" id="siteName" name="siteName" 
+                     value="${settings.site_name || 'ApexMonitor'}" 
+                     placeholder="ApexMonitor">
+              <small class="form-help">Displayed on the status page header</small>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="checkRetentionDays">Data Retention (days)</label>
+                <input type="number" id="checkRetentionDays" name="checkRetentionDays" 
+                       value="${settings.check_retention_days || '30'}" min="1" max="365">
+                <small class="form-help">How long to keep check history</small>
+              </div>
+
+              <div class="form-group">
+                <label for="schedulerIntervalSeconds">Check Interval (seconds)</label>
+                <input type="number" id="schedulerIntervalSeconds" name="schedulerIntervalSeconds" 
+                       value="${settings.scheduler_interval_seconds || '60'}" min="30" max="3600">
+                <small class="form-help">How often to run health checks</small>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="consecutiveFailuresThreshold">Failures Before Down</label>
+                <input type="number" id="consecutiveFailuresThreshold" name="consecutiveFailuresThreshold" 
+                       value="${settings.consecutive_failures_threshold || '3'}" min="1" max="10">
+                <small class="form-help">Consecutive failures to trigger incident</small>
+              </div>
+
+              <div class="form-group">
+                <label for="incidentCooldownMinutes">Notification Cooldown (minutes)</label>
+                <input type="number" id="incidentCooldownMinutes" name="incidentCooldownMinutes" 
+                       value="${settings.incident_cooldown_minutes || '10'}" min="1" max="60">
+                <small class="form-help">Min time between notifications</small>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Save General Settings</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .settings-container {
+      max-width: 800px;
+    }
+
+    .settings-tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0;
+    }
+
+    .tab-btn {
+      padding: 12px 24px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: #667eea;
+    }
+
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .form-help {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Remove active from all tabs and contents
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        // Add active to clicked tab and corresponding content
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Test Discord notification
+    document.getElementById('testDiscord')?.addEventListener('click', async () => {
+      const webhookUrl = document.getElementById('discordWebhookUrl').value;
+      if (!webhookUrl) {
+        alert('Please enter a Discord webhook URL first');
+        return;
+      }
+
+      const btn = document.getElementById('testDiscord');
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/admin/settings/notifications/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ webhookUrl })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          alert('Test notification sent successfully!');
+        } else {
+          alert('Failed to send test notification: ' + result.error);
+        }
+      } catch (err) {
+        alert('Failed to send test notification');
+      } finally {
+        btn.textContent = 'Test Notification';
+        btn.disabled = false;
+      }
+    });
+
+    // Handle URL hash for direct tab access
+    if (window.location.hash) {
+      const tab = window.location.hash.substring(1);
+      const tabBtn = document.querySelector('[data-tab="' + tab + '"]');
+      if (tabBtn) tabBtn.click();
+    }
+  </script>
+`, title, username }) %>
