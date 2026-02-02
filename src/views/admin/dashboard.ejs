@@ -1,0 +1,68 @@
+<%- include('layout', { body: `
+  <div class="page-header">
+    <h1>Services</h1>
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div class="scheduler-status ${schedulerStatus.isRunning ? '' : 'stopped'}">
+        <span>${schedulerStatus.isRunning ? '●' : '○'}</span>
+        Scheduler: ${schedulerStatus.isRunning ? 'Running' : 'Stopped'}
+        ${schedulerStatus.checkInProgress ? ' (checking...)' : ''}
+      </div>
+      <a href="/admin/services/new" class="btn btn-primary">+ Add Service</a>
+    </div>
+  </div>
+
+  <div class="card">
+    ${services.length === 0 ? `
+      <div class="empty-state">
+        <p>No services configured yet.</p>
+        <a href="/admin/services/new" class="btn btn-primary">Add Your First Service</a>
+      </div>
+    ` : `
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Name</th>
+            <th>Group</th>
+            <th>Type</th>
+            <th>Response Time</th>
+            <th>Active</th>
+            <th>Visible</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${services.map(service => `
+            <tr>
+              <td>
+                <span class="status-badge ${service.hasActiveIncident ? 'down' : (service.latestCheck ? service.latestCheck.status.toLowerCase() : 'unknown')}">
+                  ${service.hasActiveIncident ? 'DOWN' : (service.latestCheck ? service.latestCheck.status : 'Unknown')}
+                </span>
+              </td>
+              <td><strong>${service.name}</strong></td>
+              <td>${service.group}</td>
+              <td>${service.monitorType.toUpperCase()}</td>
+              <td>${service.latestCheck ? service.latestCheck.responseTimeMs + 'ms' : '-'}</td>
+              <td>
+                <span class="status-badge ${service.isActive ? 'active' : 'inactive'}">
+                  ${service.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </td>
+              <td>${service.showOnStatusPage ? 'Yes' : 'No'}</td>
+              <td class="actions">
+                <a href="/admin/services/${service._id}/history" class="btn btn-secondary btn-sm">History</a>
+                <a href="/admin/services/${service._id}/edit" class="btn btn-secondary btn-sm">Edit</a>
+                <form action="/admin/services/${service._id}/check" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-secondary btn-sm">Check Now</button>
+                </form>
+                <form action="/admin/services/${service._id}/delete" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this service? All checks and incidents will be deleted.');">
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `}
+  </div>
+`, title, username }) %>
