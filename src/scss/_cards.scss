@@ -2,6 +2,8 @@
 // Cards
 // ============================================
 
+@use 'index' as *;
+
 .card {
   @include card-base;
 

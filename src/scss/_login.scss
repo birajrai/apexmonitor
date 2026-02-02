@@ -2,6 +2,8 @@
 // Login Page
 // ============================================
 
+@use 'index' as *;
+
 .login-page {
   @include flex-center;
   min-height: 100vh;

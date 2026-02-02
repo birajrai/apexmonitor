@@ -2,6 +2,8 @@
 // Page Header
 // ============================================
 
+@use 'index' as *;
+
 .page-header {
   @include flex-between;
   margin-bottom: $spacing-8;

@@ -2,6 +2,8 @@
 // Mixins & Helper Functions
 // ============================================
 
+@use 'variables' as *;
+
 // Flexbox helpers
 @mixin flex-center {
   display: flex;

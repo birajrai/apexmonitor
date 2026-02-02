@@ -2,6 +2,8 @@
 // Navigation Bar
 // ============================================
 
+@use 'index' as *;
+
 .navbar {
   background-color: rgba($color-white, 0.95);
   border-bottom: 1px solid $color-gray-200;

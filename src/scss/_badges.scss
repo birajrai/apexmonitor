@@ -2,6 +2,8 @@
 // Badges & Status Indicators
 // ============================================
 
+@use 'index' as *;
+
 // Status Badge
 .status-badge {
   @include badge-base;

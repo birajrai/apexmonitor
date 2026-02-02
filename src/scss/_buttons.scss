@@ -2,6 +2,8 @@
 // Buttons
 // ============================================
 
+@use 'index' as *;
+
 .btn {
   @include btn-base;
 

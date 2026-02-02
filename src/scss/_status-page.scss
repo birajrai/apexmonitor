@@ -2,6 +2,8 @@
 // Status Page (Dark Theme)
 // ============================================
 
+@use 'index' as *;
+
 .status-page {
   background-color: $color-dark-bg;
   color: $color-dark-text;
